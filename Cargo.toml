@@ -1,0 +1,6 @@
+[package]
+name = "satyrs"
+version = "0.1.0"
+authors = ["Jesse Mu <muj@bc.edu>"]
+
+[dependencies]
