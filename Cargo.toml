@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Jesse Mu <muj@bc.edu>", "Kevin Gleason <gleasokh@bc.edu>"]
 
 [dependencies]
+argparse = "0.2.1"
