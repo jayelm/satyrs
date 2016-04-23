@@ -14,17 +14,18 @@ enum SatError {
 fn parse_dimacs(reader: &mut BufReader<std::fs::File>) -> Result<String, SatError> {
     for line in reader.lines() {
         let line = line.expect("Could not read file");
+        // TODO: Will panic if line length < 2 chars. Split on whitespace instead
         match &line[..2] {
             "c " => println!("Comment"), // Comment, ignore
             "p " => println!("Problem statement"), // Problem statement
             _    => return Err(SatError::InvalidSyntax)
         }
     }
-    Ok("No errors".into())
+    Ok(String::from("No errors"))
 }
 
 fn main() {
-    let mut filename = "".to_string();
+    let mut filename = String::new();
     {  // this block limits scope of borrows by ap.refer() method
         let mut ap = ArgumentParser::new();
         ap.set_description("Satyrs: A lustful, drunken SAT solver");
@@ -32,8 +33,8 @@ fn main() {
             .add_argument(
                 "filename",
                 Store,
-                "SAT filename to read"
-            ).required();
+                "SAT filename to read")
+            .required();
         ap.parse_args_or_exit();
     }
 
@@ -43,7 +44,8 @@ fn main() {
     let mut reader = BufReader::new(f);
 
     // TODO: This is definitely not the correct way to handle errors
-    let line = parse_dimacs(&mut reader).expect("Parse error");
+    let line = parse_dimacs(&mut reader)
+        .expect("Parse error");
 
-    println!("{}", line)
+    println!("{}", line);
 }
