@@ -13,11 +13,11 @@ enum SatError {
 
 fn parse_dimacs(reader: &mut BufReader<std::fs::File>) -> Result<String, SatError> {
     for line in reader.lines() {
-        let line = line.expect("Could not read file");
-        // TODO: Will panic if line length < 2 chars. Split on whitespace instead
-        match &line[..2] {
-            "c " => println!("Comment"), // Comment, ignore
-            "p " => println!("Problem statement"), // Problem statement
+        let line = line.expect("Could not read file");  // Unwrap result
+        let words: Vec<&str> = line.split_whitespace().collect();
+        match words[0] {
+            "c" => println!("Comment"), // Comment, ignore
+            "p" => println!("Problem statement"), // Problem statement
             _    => return Err(SatError::InvalidSyntax)
         }
     }
