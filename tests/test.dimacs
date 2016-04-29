@@ -3,3 +3,4 @@ c CNF problem with 3 variablesm 1 .,.,
 p cnf 3 1  
 c fgd
 1 2 3 0
+3 -1 0

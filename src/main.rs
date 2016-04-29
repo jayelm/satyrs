@@ -26,9 +26,8 @@ fn main() {
         .expect("Could not open file");
 
     // TODO: This is definitely not the correct way to handle errors
-    let line : CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
+    let cnf : CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
 
-    println!("{}", line);
-	let c = satyrs::cnf::CNF::new();
-	println!("{}", c.to_string());
+    println!("{}", cnf);
+	println!("{}", cnf.to_string());
 }

@@ -30,23 +30,16 @@ impl CNF {
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
         let id : i32 = self.clauses.len() as i32;   
-        self.clauses.insert(id, clause);
-        /* TODO: Insert each variabl in clause into occurrences
-       for var in clause {
-             match self.occurrences.get(&var) {
-                Some(mut occ) => occ.push(id),
-                None => {
-                    self.occurrences.insert(var,vec!(id));
-                    ()
-                },
-            }
+        for var in &clause {
+            let occ = self.occurrences.entry(*var).or_insert(Vec::new());
+            occ.push(id);
         }
-        */
+        self.clauses.insert(id, clause);
         id
     }
 
     pub fn to_string(self) -> String {
-        String::from(self.test)
+        format!("Clauses: {:?}\nOccurrrences: {:?}",self.clauses,self.occurrences)
     }
 }
 
@@ -76,10 +69,10 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
             "c" => println!("Comment"), // Comment, ignore
                 "p" => println!("Problem statement"), // Problem statement
                 _   => {
-                    let tokens = words.iter().map(|s| s.parse().expect("Invalid DMACS File"))
+                    let tokens = words.iter()
+                        .map(|s| s.parse().expect("Invalid DMACS File"))
                         .collect();;
                     println!("{:?}", tokens);
-                    // TODO: loop creating a vector out of 0s
                     cnf.add_clause(tokens);
                 }
         }
