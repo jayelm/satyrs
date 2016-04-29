@@ -1,28 +1,11 @@
 extern crate argparse;
 
-use std::io::prelude::*;
-use std::io::BufReader;
 use std::fs::File;
-
 use argparse::{ArgumentParser, Store};
+use satyrs::cnf::CNF;
 
-#[derive(Debug)]
-enum SatError {
-    InvalidSyntax
-}
-
-fn parse_dimacs(reader: &mut BufReader<std::fs::File>) -> Result<String, SatError> {
-    for line in reader.lines() {
-        let line = line.expect("Could not read file");  // Unwrap result
-        let words: Vec<&str> = line.split_whitespace().collect();
-        match words[0] {
-            "c" => println!("Comment"), // Comment, ignore
-            "p" => println!("Problem statement"), // Problem statement
-            _    => return Err(SatError::InvalidSyntax)
-        }
-    }
-    Ok(String::from("No errors"))
-}
+//extern crate satyrs;
+mod satyrs;
 
 fn main() {
     let mut filename = String::new();
@@ -39,13 +22,13 @@ fn main() {
     }
 
     // Read the file
-    let f = File::open(filename)
+    let f : File = File::open(filename)
         .expect("Could not open file");
-    let mut reader = BufReader::new(f);
 
     // TODO: This is definitely not the correct way to handle errors
-    let line = parse_dimacs(&mut reader)
-        .expect("Parse error");
+    let line : CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
 
     println!("{}", line);
+	let c = satyrs::cnf::CNF::new();
+	println!("{}", c.to_string());
 }
