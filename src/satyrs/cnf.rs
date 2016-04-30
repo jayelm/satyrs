@@ -13,16 +13,19 @@ use std::fs::File;
  * occurrences tracks which clauses literals are used in
  */
 pub struct CNF {
-    clauses     : HashMap<i32,Vec<i32>>,
-    occurrences : HashMap<i32,Vec<i32>>,
+    nvar        : i32,
+    nclause     : i32,
+    clauses     : HashMap<i32, Vec<i32>>,
+    occurrences : HashMap<i32, Vec<i32>>
 }
 
 impl CNF {
-    pub fn new() -> CNF {
+    pub fn new(nvar: i32, nclause: i32) -> CNF {
         CNF {
-            test : "NEW".to_string(),
-            clauses : HashMap::new(),
-            occurrences : HashMap::new(),
+            nvar        : nvar,
+            nclause     : nclause,
+            clauses     : HashMap::new(),
+            occurrences : HashMap::new()
         }
     }
 
@@ -38,7 +41,9 @@ impl CNF {
     }
 
     pub fn to_string(self) -> String {
-        format!("Clauses: {:?}\nOccurrrences: {:?}",self.clauses,self.occurrences)
+        format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
+                self.nvar, self.nclause,
+                self.clauses, self.occurrences)
     }
 }
 
@@ -60,16 +65,52 @@ pub enum SatError {
 }
 
 fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
-    let mut cnf = CNF::new();
-    for line in reader.lines() {
+    let mut line_iterator = reader.lines();
+
+    let mut nvar: i32 = -1;
+    let mut nclause: i32 = -1;
+    // DIMACS file must have a problem statement before other lines.
+    // This first loop searches for the problem statement.
+    for line in &mut line_iterator {
         let line = line.expect("Could not read file");  // Unwrap result
         let words: Vec<&str> = line.split_whitespace().collect();
         match words[0] {
-            "c" => println!("Comment"), // Comment, ignore
-            "p" => println!("Problem statement"), // Problem statement
+            "c" => { }
+            "p" => { // Problem statement
+                // Must have format "p cnf nvar nclause"
+                if words.len() != 4 || words[1] != "cnf" {
+                    return Err(SatError::InvalidSyntax);
+                }
+                nvar = words[2].parse()
+                    .expect(&format!("Invalid number of variables {}", words[2]));
+                nclause = words[3].parse()
+                    .expect(&format!("Invalid number of clauses {}", words[3]));
+                break;
+            }
+            _ => { return Err(SatError::InvalidSyntax); }
+        }
+    }
+    // Then nvar, nclause were never initialized
+    if nvar == -1 || nclause == -1 {
+        return Err(SatError::InvalidSyntax);
+    }
+    // TODO: Different errors for different descriptions (hence why I've split up this if
+    // statement)
+    if nvar == 0 || nclause == 0 {
+        return Err(SatError::InvalidSyntax)
+    }
+
+    // Initialize CNF and parse the rest of the file
+    let mut cnf = CNF::new(nvar, nclause);
+    for line in &mut line_iterator {
+        let line = line.expect("Could not read filce");
+        let words: Vec<&str> = line.split_whitespace().collect();
+        match words[0] {
+            "c" => { }
             _   => {
+                // TODO: Assert valid set of tokens
                 let tokens = words.iter()
-                    .map(|s| s.parse().expect("Invalid DMACS File"))
+                    .map(|s| s.parse().expect("Invalid DIMACS File"))
                     .collect();;
                 println!("{:?}", tokens);
                 cnf.add_clause(tokens);
@@ -79,11 +120,12 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
     Ok(cnf)
 }
 
-pub fn parse_dimacs_file(f: File) -> Result<CNF,SatError> {
+pub fn parse_dimacs_file(f: File) -> Result<CNF, SatError> {
     // Read the file
     let mut reader = BufReader::new(f);
 
-    // TODO: This is definitely not the correct way to handle errors
+    // TODO: This is definitely not the correct way to handle errors.
+    // Should parse_dimacs have options for returning an error AND panicking?
     let line = parse_dimacs(&mut reader);
     line
 }
