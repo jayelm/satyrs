@@ -9,11 +9,10 @@ use std::fs::File;
 /**
  * test can be deleted.
  * clauses will house all clauses, key is int so that we can use occurrences
- *  ID for simplifications later
+ * ID for simplifications later
  * occurrences tracks which clauses literals are used in
  */
 pub struct CNF {
-    test        : String,
     clauses     : HashMap<i32,Vec<i32>>,
     occurrences : HashMap<i32,Vec<i32>>,
 }
@@ -29,7 +28,7 @@ impl CNF {
 
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
-        let id : i32 = self.clauses.len() as i32;   
+        let id : i32 = self.clauses.len() as i32;
         for var in &clause {
             let occ = self.occurrences.entry(*var).or_insert(Vec::new());
             occ.push(id);
@@ -67,14 +66,14 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
         let words: Vec<&str> = line.split_whitespace().collect();
         match words[0] {
             "c" => println!("Comment"), // Comment, ignore
-                "p" => println!("Problem statement"), // Problem statement
-                _   => {
-                    let tokens = words.iter()
-                        .map(|s| s.parse().expect("Invalid DMACS File"))
-                        .collect();;
-                    println!("{:?}", tokens);
-                    cnf.add_clause(tokens);
-                }
+            "p" => println!("Problem statement"), // Problem statement
+            _   => {
+                let tokens = words.iter()
+                    .map(|s| s.parse().expect("Invalid DMACS File"))
+                    .collect();;
+                println!("{:?}", tokens);
+                cnf.add_clause(tokens);
+            }
         }
     }
     Ok(cnf)
@@ -88,4 +87,3 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF,SatError> {
     let line = parse_dimacs(&mut reader);
     line
 }
-
