@@ -76,7 +76,8 @@ impl Display for CNF {
 
 #[derive(Debug)]
 pub enum SatError {
-    InvalidSyntax
+    InvalidSyntax,
+	InvalidProblem
 }
 
 fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
@@ -107,12 +108,12 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
     }
     // Then nvar, nclause were never initialized
     if nvar == -1 || nclause == -1 {
-        return Err(SatError::InvalidSyntax);
+       return Err(SatError::InvalidProblem);
     }
     // TODO: Different errors for different descriptions (hence why I've split up this if
     // statement)
     if nvar == 0 || nclause == 0 {
-        return Err(SatError::InvalidSyntax)
+        return Err(SatError::InvalidProblem)
     }
 
     // Initialize CNF and parse the rest of the file
