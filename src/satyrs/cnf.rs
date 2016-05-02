@@ -6,12 +6,15 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 
+use std::clone::Clone;
+
 /**
  * test can be deleted.
  * clauses will house all clauses, key is int so that we can use occurrences
  * ID for simplifications later
  * occurrences tracks which clauses literals are used in
  */
+#[derive(Debug)]
 pub struct CNF {
     nvar        : i32,
     nclause     : i32,
@@ -29,6 +32,7 @@ impl CNF {
         }
     }
 
+
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
         let id : i32 = self.clauses.len() as i32;
@@ -45,6 +49,17 @@ impl CNF {
                 self.nvar, self.nclause,
                 self.clauses, self.occurrences)
     }
+}
+
+impl Clone for CNF { 
+	fn clone(&self) -> CNF {
+		CNF {
+			nvar : self.nvar,
+			nclause : self.nclause,
+			clauses : self.clauses.clone(),
+			occurrences : self.occurrences.clone(),
+		}	 
+	} 
 }
 
 impl Display for CNF {

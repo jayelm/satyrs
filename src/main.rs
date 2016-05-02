@@ -3,6 +3,7 @@ extern crate argparse;
 use std::fs::File;
 use argparse::{ArgumentParser, Store};
 use satyrs::cnf::CNF;
+use satyrs::dpll;
 
 //extern crate satyrs;
 mod satyrs;
@@ -27,7 +28,8 @@ fn main() {
 
     // TODO: This is definitely not the correct way to handle errors
     let cnf : CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
-
+    let solvable = dpll::DPLL(&cnf);
     println!("{}", cnf);
 	println!("{}", cnf.to_string());
+	println!("Solvable: {}", solvable);
 }
