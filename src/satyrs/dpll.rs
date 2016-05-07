@@ -24,7 +24,8 @@ fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> 
         return Some(p_assn)  // Display optional value
     }
     for unit in &cnf.units {
-		println!("IM JUST A LONELY UNIT");
+		
+		println!("{}: IM JUST A LONELY UNIT", unit);
     }
     // If contains an empty clause return False
     // For every unit-clause, unit-propogate
