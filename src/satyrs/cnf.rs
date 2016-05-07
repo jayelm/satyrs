@@ -51,15 +51,15 @@ impl CNF {
     }
 }
 
-impl Clone for CNF { 
-	fn clone(&self) -> CNF {
-		CNF {
-			nvar : self.nvar,
-			nclause : self.nclause,
-			clauses : self.clauses.clone(),
-			occurrences : self.occurrences.clone(),
-		}	 
-	} 
+impl Clone for CNF {
+    fn clone(&self) -> CNF {
+        CNF {
+            nvar : self.nvar,
+            nclause : self.nclause,
+            clauses : self.clauses.clone(),
+            occurrences : self.occurrences.clone(),
+        }
+    }
 }
 
 impl Display for CNF {
@@ -77,7 +77,7 @@ impl Display for CNF {
 #[derive(Debug)]
 pub enum SatError {
     InvalidSyntax,
-	InvalidProblem
+    InvalidProblem
 }
 
 fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
@@ -124,11 +124,16 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
         match words[0] {
             "c" => { }
             _   => {
-                // TODO: Assert valid set of tokens
-                let tokens = words.iter()
-                    .map(|s| s.parse().expect("Invalid DIMACS File"))
-                    .collect();;
-                println!("{:?}", tokens);
+                let tokens: Vec<i32> = words.iter()
+                    .filter_map(|s| {
+                        let n = s.parse::<i32>().expect("Invalid DIMACS File");
+                        // FIXME: This ignores zeros not just as line enders but in the formulas
+                        // themselves. TODO: Split on zeros at the end here.
+                        if n == 0 { return None; }
+                        if n > nvar { panic!(format!("Variable out of range: {}", n)); }
+                        Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
+                    })
+                    .collect();
                 cnf.add_clause(tokens);
             }
         }
