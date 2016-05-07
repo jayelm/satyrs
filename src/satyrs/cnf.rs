@@ -37,10 +37,10 @@ impl CNF {
         }
     }
 
-    // Add a clause, return the ID of the inserted clause
-    fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
+    /// Add a clause, return the ID of the inserted clause
+    fn add_clause(&mut self, clause: Vec<i32>) -> i32 {
         assert!(clause.len() > 0);
-        let id : i32 = self.clauses.len() as i32;
+        let id: i32 = self.clauses.len() as i32;
         if clause.len() == 1 { self.units.insert(id); }
         for var in &clause {
             let occ = self.occurrences.entry(*var).or_insert(Vec::new());
@@ -48,6 +48,29 @@ impl CNF {
         }
         self.clauses.insert(id, clause);
         id
+    }
+
+    /// Unit propagation: propagate the literal associated with the clause id `clause`, and remove
+    /// it from `self.units`.
+    fn unit_propagate(&mut self, unit: i32) {
+        // Remove clauses with lit and remove lit from occurrences.
+        let occurrences = &self.occurrences.remove(
+            &self.clauses.get(&unit).expect("unit clause not found")[0]
+        ).unwrap();
+        for occ in occurrences {
+            self.clauses.remove(&occ);
+        }
+        // This needs to be true, i.e. unit clause id needs to be in the unit clauses
+        assert!(self.units.remove(&unit))
+    }
+
+    /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
+    /// from the remaining clauses.
+    fn propagate(&mut self, lit: i32) {
+        // Remove clauses with lit and remove lit from occurrences.
+        for occ in &self.occurrences.remove(&lit).unwrap() {
+            self.clauses.remove(occ);
+        }
     }
 }
 
@@ -342,5 +365,20 @@ mod tests {
         ");
         let cnf = parse_dimacs_file(tmpfile).unwrap();
         assert_eq!(cnf.units.len(), 3);
+    }
+
+    // TODO: Make this doc test (with unit propagate); create_tempfile may need to be an importable
+    // macro up there
+    #[test]
+    fn propagate_works() {
+        let tmpfile = create_tempfile!("
+            p cnf 2 2
+            1 0
+            1 2 0
+        ");
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        println!("{:?}", cnf);
+        cnf.propagate(2);
+        println!("{:?}", cnf);
     }
 }
