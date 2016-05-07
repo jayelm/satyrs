@@ -4,6 +4,7 @@ use satyrs::cnf::{CNF, Assignment, PartialAssignment};
  * DPLL Algorithm implementation
  * Start by cloning the cnf so we can modify the HashMap
  * Clone might be slow, consider a faster option
+ * TODO: Consider using HashSet instead of Vec for the clauses
  */
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
@@ -19,6 +20,12 @@ pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
 #[allow(unused_variables)]
 fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
+    if cnf.clauses.is_empty() {
+        return Some(p_assn)  // Display optional value
+    }
+    for unit in &cnf.units {
+		println!("IM JUST A LONELY UNIT");
+    }
     // If contains an empty clause return False
     // For every unit-clause, unit-propogate
     // For ever pure literal, pure literal assign

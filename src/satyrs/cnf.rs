@@ -22,7 +22,8 @@ pub struct CNF {
     pub nvar        : i32,
     pub nclause     : i32,
     pub clauses     : HashMap<i32, Vec<i32>>,
-    pub occurrences : HashMap<i32, Vec<i32>>
+    pub occurrences : HashMap<i32, Vec<i32>>,
+	pub units       : HashSet<i32>
 }
 
 impl CNF {
@@ -31,13 +32,16 @@ impl CNF {
             nvar        : nvar,
             nclause     : nclause,
             clauses     : HashMap::new(),
-            occurrences : HashMap::new()
+            occurrences : HashMap::new(),
+			units       : HashSet::new(),
         }
     }
 
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
+		assert!(clause.len() > 0);
         let id : i32 = self.clauses.len() as i32;
+		if clause.len() == 1 { self.units.insert(id); }
         for var in &clause {
             let occ = self.occurrences.entry(*var).or_insert(Vec::new());
             occ.push(id);
@@ -53,7 +57,8 @@ impl Clone for CNF {
             nvar : self.nvar,
             nclause : self.nclause,
             clauses : self.clauses.clone(),
-            occurrences : self.occurrences.clone()
+            occurrences : self.occurrences.clone(),
+			units 		: self.units.clone(),
         }
     }
 }
