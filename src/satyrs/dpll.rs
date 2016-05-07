@@ -18,27 +18,23 @@ pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
 }
 
 #[allow(unused_variables)]
-fn _dpll(_cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
+fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
-    let cnf = _cnf.clone();
     if cnf.clauses.is_empty() {
         return Some(p_assn)  // Display optional value
     }
     for unit in &cnf.units {
-		let clause = cnf.clauses.get(unit).expect("Unit clause not found!");
-		println!("{:?}: IM JUST A LONELY UNIT CLAUSE", clause);
-		cnf.propogate(clause[0]);
+		let clause = cnf.clauses.get(&unit).expect("Clause not found");
+		let lit = clause[0];
+		p_assn.assign_literal(lit);
+		// cnf.unit_propogate(unit); // Only propogate in the clone
     }
+
     // If contains an empty clause return False
     // For every unit-clause, unit-propogate
     // For ever pure literal, pure literal assign
     // Choose literal L for split
     // Return DPLL with L and -L
 
-    // TODO: Need to implement. Just testing with a PartialAssignment
-    println!("PARTIAL ASSIGNMENT:\n{}", p_assn);
-    for x in 0..(cnf.nvar) {
-        p_assn.assign(x as usize, true);
-    }
     Some(p_assn)
 }
