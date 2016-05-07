@@ -3,6 +3,7 @@ extern crate tempfile;
 use std::fmt::{ Display, Formatter, Error };
 use std::iter::Iterator;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::vec::Vec;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -18,10 +19,10 @@ use std::clone::Clone;
  */
 #[derive(Debug)]
 pub struct CNF {
-    nvar        : i32,
-    nclause     : i32,
-    clauses     : HashMap<i32, Vec<i32>>,
-    occurrences : HashMap<i32, Vec<i32>>
+    pub nvar        : i32,
+    pub nclause     : i32,
+    pub clauses     : HashMap<i32, Vec<i32>>,
+    pub occurrences : HashMap<i32, Vec<i32>>
 }
 
 impl CNF {
@@ -33,7 +34,6 @@ impl CNF {
             occurrences : HashMap::new()
         }
     }
-
 
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
@@ -73,6 +73,43 @@ impl Display for CNF {
 }
 
 // End CNF
+
+// Begin Assignemnts 
+
+pub type Assignment = Vec<bool>;
+
+pub struct PartialAssignment {
+    pub assignment : Vec<Option<bool>>,
+    pub unassigned : HashSet<i32>,
+}
+
+impl PartialAssignment {
+    pub fn new(n : usize) -> PartialAssignment {
+        PartialAssignment {
+            assignment : vec!(None; n),
+            unassigned : (0..n as i32).collect(),
+        }
+    }
+
+    pub fn assign(&mut self, v : usize, assn : bool){
+        // TODO: Error check
+        self.assignment[v] = Some(assn);
+    }
+
+    pub fn unassign(&mut self, v : usize) {
+        self.assignment[v] = None;
+    }
+
+    pub fn to_string(self) -> String {
+        format!("Assignemnts: {:?}\nUnassigned: {:?}",
+                self.assignment, self.unassigned)
+    }
+}
+
+// TODO: Implement Display
+// impl Display for PartialAssignment {} 
+
+// End Assignments
 
 // Begin Parsing
 

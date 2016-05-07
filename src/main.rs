@@ -31,5 +31,8 @@ fn main() {
     let solvable = dpll::DPLL(&cnf);
     println!("{}", cnf);
     println!("{}", cnf.to_string());
-    println!("Solvable: {}", solvable);
+    match solvable {
+        Some(solution)=> println!("Solution: {:?}",solution),
+        None => println!("No solution"),
+    }
 }
