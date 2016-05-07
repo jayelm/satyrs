@@ -27,7 +27,7 @@ fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> 
 		let clause = cnf.clauses.get(&unit).expect("Clause not found");
 		let lit = clause[0];
 		p_assn.assign_literal(lit);
-		// cnf.unit_propogate(unit); // Only propogate in the clone
+		cnf.unit_propogate(unit); // Only propogate in the clone
     }
 
     // If contains an empty clause return False
