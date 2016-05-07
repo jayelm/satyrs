@@ -56,14 +56,10 @@ impl CNF {
     /// it from `self.units`.
     pub fn unit_propagate(&mut self, unit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
-        let occurrences = &self.occurrences.remove(
-            &self.clauses.get(&unit).expect("unit clause not found")[0]
-        ).unwrap();
-        for occ in occurrences {
-            self.clauses.remove(&occ);
-        }
+        let lit = self.clauses.get(&unit).expect("unit clause not found")[0];
+        self.propagate(lit);
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
-        assert!(self.units.remove(&unit))
+        assert!(self.units.remove(&unit));
     }
 
     /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
@@ -378,7 +374,38 @@ mod tests {
     // TODO: Make this doc test (with unit propagate); create_tempfile may need to be an importable
     // macro up there
     #[test]
-    fn propagate_works() {
+    fn unit_propagate_works() {
+        let tmpfile = create_tempfile!("
+            p cnf 2 2
+            1 0
+            1 2 0
+        ");
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        cnf.unit_propagate(0);
+        assert!(cnf.units.is_empty());
+    }
+
+    #[test]
+    fn unit_propagate_works_2() {
+        let tmpfile = create_tempfile!("
+            p cnf 4 4
+            1 0
+            1 2 0
+            2 3 0
+            4 0
+        ");
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        cnf.unit_propagate(0);
+        // Only one unit clause left
+        assert_eq!(cnf.units.len(), 1);
+        cnf.unit_propagate(3);
+        // No more unit clauses
+        assert!(cnf.units.is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected = "unit clause not found")]
+    fn unit_clause_not_found() {
         let tmpfile = create_tempfile!("
             p cnf 2 2
             1 0
@@ -386,7 +413,7 @@ mod tests {
         ");
         let mut cnf = parse_dimacs_file(tmpfile).unwrap();
         println!("{:?}", cnf);
-        cnf.propagate(2);
+        cnf.unit_propagate(2);
         println!("{:?}", cnf);
     }
 }
