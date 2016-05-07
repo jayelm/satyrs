@@ -58,7 +58,7 @@ impl Clone for CNF {
             nclause     : self.nclause,
             clauses     : self.clauses.clone(),
             occurrences : self.occurrences.clone(),
-            units        : self.units.clone()
+            units       : self.units.clone()
         }
     }
 }
