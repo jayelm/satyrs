@@ -8,7 +8,7 @@ use satyrs::cnf::CNF;
  * Clone might be slow, consider a faster option
  */
 #[allow(non_snake_case)]
-pub fn DPLL( cnf : &CNF ) -> bool {
+pub fn DPLL(cnf: &CNF) -> bool {
     let cnf_clone = cnf.clone();
     // If consistent set of literals, return True
     // If contains an empty clause return False

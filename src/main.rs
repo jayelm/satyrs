@@ -30,6 +30,6 @@ fn main() {
     let cnf : CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
     let solvable = dpll::DPLL(&cnf);
     println!("{}", cnf);
-	println!("{}", cnf.to_string());
-	println!("Solvable: {}", solvable);
+    println!("{}", cnf.to_string());
+    println!("Solvable: {}", solvable);
 }
