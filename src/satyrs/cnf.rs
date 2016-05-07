@@ -123,13 +123,18 @@ impl PartialAssignment {
 
     pub fn assign_literal(&mut self, lit : i32){
         let polarity : bool = lit & 1 == 0;
-        let v : usize = (lit >> 2) as usize;
+        let v : usize = (lit >> 1) as usize;
         self.assign(v,polarity);
     }
 
     pub fn unassign(&mut self, v : usize) {
         self.assignment[v] = None;
     }
+
+	pub fn unassign_literal(&mut self, lit: i32){
+		let v: usize = (lit >> 1) as usize;
+		self.unassign(v);
+	}
 }
 
 // TODO: Implement Display

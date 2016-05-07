@@ -24,18 +24,33 @@ fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> 
     if cnf.clauses.is_empty() {
         return Some(p_assn)  // Display optional value
     }
+
+    // If contains an empty clause return None
+    // TODO: Consider optimizing
+    for clause in cnf.clauses.values() {
+        if clause.len()==0 {
+            return None
+        }
+    }
+
+    // For every unit-clause, unit-propogate
     for unit in cnf.units.iter() {
 		let clause = cnf.clauses.get(&unit).expect("Clause not found");
 		let lit = clause[0];
 		p_assn.assign_literal(lit);
 		_cnf.unit_propagate(*unit); // Only propogate in the clone
     }
-
-    // If contains an empty clause return False
-    // For every unit-clause, unit-propogate
-    // For ever pure literal, pure literal assign
+    
+    // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
-    // Return DPLL with L and -L
+    let literal : i32 = cnf.clauses.values().next().unwrap()[0];
 
-    Some(p_assn)
+    // Return DPLL with L and -L
+    p_assn.assign_literal(literal);
+    let left = _dpll(&_cnf,p_assn);
+    left
+    //if left.is_some() { return left }
+    //p_assn.unassign_literal(literal);
+    //p_assn.assign_literal(literal ^ 1);
+    //_dpll(&_cnf, p_assn)
 }
