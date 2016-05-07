@@ -38,6 +38,8 @@ impl CNF {
     }
 
     /// Add a clause, return the ID of the inserted clause
+    /// Right now, this isn't public; api is odd as we have an odd representation of literals.
+    /// TODO: Mask this with public function?
     fn add_clause(&mut self, clause: Vec<i32>) -> i32 {
         assert!(clause.len() > 0);
         let id: i32 = self.clauses.len() as i32;
@@ -52,7 +54,7 @@ impl CNF {
 
     /// Unit propagation: propagate the literal associated with the clause id `clause`, and remove
     /// it from `self.units`.
-    fn unit_propagate(&mut self, unit: i32) {
+    pub fn unit_propagate(&mut self, unit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
         let occurrences = &self.occurrences.remove(
             &self.clauses.get(&unit).expect("unit clause not found")[0]
@@ -66,7 +68,7 @@ impl CNF {
 
     /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
     /// from the remaining clauses.
-    fn propagate(&mut self, lit: i32) {
+    pub fn propagate(&mut self, lit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
         for occ in &self.occurrences.remove(&lit).unwrap() {
             self.clauses.remove(occ);
