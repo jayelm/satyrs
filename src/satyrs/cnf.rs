@@ -76,13 +76,7 @@ impl Display for CNF {
 
 // Begin Parsing
 
-#[derive(Debug)]
-pub enum SatError {
-    InvalidSyntax,
-    InvalidProblem
-}
-
-fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
+fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
     let mut line_iterator = reader.lines();
 
     let mut nvar: i32 = -1;
@@ -90,49 +84,59 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
     // DIMACS file must have a problem statement before other lines.
     // This first loop searches for the problem statement.
     for line in &mut line_iterator {
-        let line = line.expect("Could not read file");  // Unwrap result
+        let line = line.expect("could not read file");  // Unwrap result
         let words: Vec<&str> = line.split_whitespace().collect();
+        if words.len() == 0 { continue; } // Ignore empty lines
         match words[0] {
             "c" => { }
             "p" => { // Problem statement
                 // Must have format "p cnf nvar nclause"
                 if words.len() != 4 || words[1] != "cnf" {
-                    return Err(SatError::InvalidSyntax);
+                    return Err("invalid problem statement");
                 }
                 nvar = words[2].parse()
-                    .expect(&format!("Invalid number of variables {}", words[2]));
+                    .expect(&format!("invalid number of variables {}", words[2]));
                 nclause = words[3].parse()
-                    .expect(&format!("Invalid number of clauses {}", words[3]));
+                    .expect(&format!("invalid number of clauses {}", words[3]));
                 break;
             }
-            _ => { return Err(SatError::InvalidSyntax); }
+            // TODO: Add words[0] to this error message
+            _ => { return Err("unknown statement beginning"); }
         }
     }
     // Then nvar, nclause were never initialized
     if nvar == -1 || nclause == -1 {
-       return Err(SatError::InvalidProblem);
+       return Err("no problem statement found");
     }
     // TODO: Different errors for different descriptions (hence why I've split up this if
     // statement)
     if nvar == 0 || nclause == 0 {
-        return Err(SatError::InvalidProblem)
+        return Err("invalid number of literals in problem")
     }
 
     // Initialize CNF and parse the rest of the file
     let mut cnf = CNF::new(nvar, nclause);
+    let mut clauses_read: i32 = 0;
     for line in &mut line_iterator {
-        let line = line.expect("Could not read filce");
+        let line = line.unwrap();
         let words: Vec<&str> = line.split_whitespace().collect();
+        if words.len() == 0 { continue; }
         match words[0] {
             "c" => { }
+            "p" => { return Err("duplicate problem statement"); }
             _   => {
+                clauses_read = clauses_read + 1;
+                if clauses_read > nclause { return Err("too many clauses in file"); }
                 let tokens: Vec<i32> = words.iter()
                     .filter_map(|s| {
-                        let n = s.parse::<i32>().expect("Invalid DIMACS File");
+                        let n = s.parse::<i32>().unwrap();
                         // FIXME: This ignores zeros not just as line enders but in the formulas
-                        // themselves. TODO: Split on zeros at the end here.
+                        // themselves. Split on zeros at the end here.
                         if n == 0 { return None; }
-                        if n > nvar { panic!(format!("Variable out of range: {}", n)); }
+                        // FIXME: This should return an error instead of
+                        // panicking, but I can't return an error
+                        // in a closure
+                        if n > nvar { panic!("variable out of range: {}", n); }
                         Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
                     })
                     .collect();
@@ -140,10 +144,12 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, SatError> {
             }
         }
     }
+    // Double check that the number of clauses read is equal
+    if clauses_read != nclause { return Err("too few clauses in file"); }
     Ok(cnf)
 }
 
-pub fn parse_dimacs_file(f: File) -> Result<CNF, SatError> {
+pub fn parse_dimacs_file(f: File) -> Result<CNF, &'static str> {
     // Read the file
     let mut reader = BufReader::new(f);
 
@@ -157,7 +163,8 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF, SatError> {
 mod tests {
 	extern crate tempfile;
 	use std::fs::File;
-	use std::io::{Write, Seek, SeekFrom};
+	use std::io::prelude::*;
+	use std::io::SeekFrom;
 
     use super::parse_dimacs_file;
 
@@ -172,12 +179,115 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "out of range")]
     fn variable_out_of_range() {
         let tmpfile = create_tempfile!("
             p cnf 2 3
             1 2 0
             4 1 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid number")]
+    fn invalid_nvar() {
+        let tmpfile = create_tempfile!("
+            p cnf gd 3
+            1 2 0
+            4 1 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid number")]
+    fn invalid_nclause() {
+        let tmpfile = create_tempfile!("
+            p cnf 2 gdd
+            1 2 0
+            4 1 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "too many")]
+    fn too_many_clauses() {
+        let tmpfile = create_tempfile!("
+            p cnf 5 5
+            1 2 0
+            2 3 0
+            3 4 0
+            4 5 0
+            1 3 0
+            2 4 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "too few")]
+    fn too_little_clauses() {
+        let tmpfile = create_tempfile!("
+            p cnf 5 5
+            1 2 0
+            2 3 0
+            3 4 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    fn should_work() {
+        let tmpfile = create_tempfile!("
+            p cnf 3 3
+            1 2 0
+            2 3 0
+            1 -3 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    fn should_ignore_comments() {
+        let tmpfile = create_tempfile!("
+            c comment
+            p cnf 3 3
+            c comment
+            1 2 0
+            2 3 0
+            c comment
+            1 -3 0
+            c comment
+            c comment
+            c comment
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "duplicate problem")]
+    fn duplicate_problem_statement() {
+        let tmpfile = create_tempfile!("
+            p cnf 3 3
+            1 2 0
+            p cnf 3 3
+            2 3 0
+            1 -3 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "duplicate problem")]
+    fn duplicate_problem_statement_2() {
+        let tmpfile = create_tempfile!("
+            p cnf 3 3
+            p cnf 3 3
+            1 2 0
+            2 3 0
+            1 -3 0
         ");
         let _ = parse_dimacs_file(tmpfile).unwrap();
     }
