@@ -1,3 +1,5 @@
+extern crate tempfile;
+
 use std::fmt::{ Display, Formatter, Error };
 use std::iter::Iterator;
 use std::collections::HashMap;
@@ -149,4 +151,34 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF, SatError> {
     // Should parse_dimacs have options for returning an error AND panicking?
     let line = parse_dimacs(&mut reader);
     line
+}
+
+#[cfg(test)]
+mod tests {
+	extern crate tempfile;
+	use std::fs::File;
+	use std::io::{Write, Seek, SeekFrom};
+
+    use super::parse_dimacs_file;
+
+    macro_rules! create_tempfile {
+        ($x: expr) => {{
+            let mut tmpfile: File = tempfile::tempfile().unwrap();
+            let _ = write!(tmpfile, $x);
+            tmpfile.seek(SeekFrom::Start(0)).unwrap();
+
+            tmpfile
+        }};
+    }
+
+    #[test]
+    #[should_panic]
+    fn variable_out_of_range() {
+        let tmpfile = create_tempfile!("
+            p cnf 2 3
+            1 2 0
+            4 1 0
+        ");
+        let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
 }
