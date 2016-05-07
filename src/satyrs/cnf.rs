@@ -64,6 +64,8 @@ impl CNF {
 
     /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
     /// from the remaining clauses.
+    /// TODO: unit_propagate and propagate should return true/false
+    /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
         for occ in &self.occurrences.remove(&lit).unwrap() {
