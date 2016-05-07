@@ -50,9 +50,9 @@ impl CNF {
 impl Clone for CNF {
     fn clone(&self) -> CNF {
         CNF {
-            nvar : self.nvar,
-            nclause : self.nclause,
-            clauses : self.clauses.clone(),
+            nvar        : self.nvar,
+            nclause     : self.nclause,
+            clauses     : self.clauses.clone(),
             occurrences : self.occurrences.clone()
         }
     }
@@ -86,7 +86,7 @@ impl PartialAssignment {
         }
     }
 
-    pub fn assign(&mut self, v : usize, assn : bool){
+    pub fn assign(&mut self, v : usize, assn : bool) {
         // TODO: Error check
         self.assignment[v] = Some(assn);
     }
