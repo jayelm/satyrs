@@ -45,12 +45,6 @@ impl CNF {
         self.clauses.insert(id, clause);
         id
     }
-
-    pub fn to_string(self) -> String {
-        format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
-                self.nvar, self.nclause,
-                self.clauses, self.occurrences)
-    }
 }
 
 impl Clone for CNF {
@@ -66,9 +60,10 @@ impl Clone for CNF {
 
 impl Display for CNF {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        let mut comma_separated = String::new();
-        comma_separated.push_str("Need to implement formatter");
-        write!(f, "{}", comma_separated)
+		let formatted = format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
+                self.nvar, self.nclause,
+                self.clauses, self.occurrences);
+        write!(f, "{}", formatted)
     }
 }
 
@@ -99,15 +94,16 @@ impl PartialAssignment {
     pub fn unassign(&mut self, v : usize) {
         self.assignment[v] = None;
     }
-
-    pub fn to_string(self) -> String {
-        format!("Assignemnts: {:?}\nUnassigned: {:?}",
-                self.assignment, self.unassigned)
-    }
 }
 
 // TODO: Implement Display
-// impl Display for PartialAssignment {} 
+impl Display for PartialAssignment {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+		let formatted = format!("Assignemnts: {:?}\nUnassigned: {:?}",
+                self.assignment, self.unassigned);
+        write!(f, "{}", formatted)
+    }
+}
 
 // End Assignments
 

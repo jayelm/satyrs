@@ -26,6 +26,7 @@ fn _dpll(cnf : &CNF, mut p_assn : PartialAssignment) -> Option<PartialAssignment
     // Return DPLL with L and -L
 	
 	// TODO: Need to implement. Just testing with a PartialAssignment
+    println!("PARTIAL ASSIGNMENT:\n{}",p_assn);
 	for x in 0..(cnf.nvar){
 		p_assn.assign(x as usize,true);	
 	}
