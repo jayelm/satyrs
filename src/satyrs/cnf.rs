@@ -23,7 +23,7 @@ pub struct CNF {
     pub nclause     : i32,
     pub clauses     : HashMap<i32, Vec<i32>>,
     pub occurrences : HashMap<i32, Vec<i32>>,
-	pub units       : HashSet<i32>
+    pub units       : HashSet<i32>
 }
 
 impl CNF {
@@ -33,15 +33,15 @@ impl CNF {
             nclause     : nclause,
             clauses     : HashMap::new(),
             occurrences : HashMap::new(),
-			units       : HashSet::new(),
+            units       : HashSet::new(),
         }
     }
 
     // Add a clause, return the ID of the inserted clause
     fn add_clause(&mut self, clause : Vec<i32>) -> i32 {
-		assert!(clause.len() > 0);
+        assert!(clause.len() > 0);
         let id : i32 = self.clauses.len() as i32;
-		if clause.len() == 1 { self.units.insert(id); }
+        if clause.len() == 1 { self.units.insert(id); }
         for var in &clause {
             let occ = self.occurrences.entry(*var).or_insert(Vec::new());
             occ.push(id);
@@ -57,15 +57,15 @@ impl Clone for CNF {
             nvar        : self.nvar,
             nclause     : self.nclause,
             clauses     : self.clauses.clone(),
-            occurrences : self.occurrences.clone()
-			units 		: self.units.clone(),
+            occurrences : self.occurrences.clone(),
+            units        : self.units.clone()
         }
     }
 }
 
 impl Display for CNF {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-		let formatted = format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
+        let formatted = format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
                 self.nvar, self.nclause,
                 self.clauses, self.occurrences);
         write!(f, "{}", formatted)
@@ -74,7 +74,7 @@ impl Display for CNF {
 
 // End CNF
 
-// Begin Assignemnts 
+// Begin Assignemnts
 
 pub type Assignment = Vec<bool>;
 
@@ -104,7 +104,7 @@ impl PartialAssignment {
 // TODO: Implement Display
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-		let formatted = format!("Assignemnts: {:?}\nUnassigned: {:?}",
+        let formatted = format!("Assignemnts: {:?}\nUnassigned: {:?}",
                 self.assignment, self.unassigned);
         write!(f, "{}", formatted)
     }
@@ -114,6 +114,7 @@ impl Display for PartialAssignment {
 
 // Begin Parsing
 
+// TODO: rename to from_dimacs or somehow isolate parsing
 fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
     let mut line_iterator = reader.lines();
 
@@ -199,10 +200,10 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF, &'static str> {
 
 #[cfg(test)]
 mod tests {
-	extern crate tempfile;
-	use std::fs::File;
-	use std::io::prelude::*;
-	use std::io::SeekFrom;
+    extern crate tempfile;
+    use std::fs::File;
+    use std::io::prelude::*;
+    use std::io::SeekFrom;
 
     use super::parse_dimacs_file;
 
@@ -328,5 +329,18 @@ mod tests {
             1 -3 0
         ");
         let _ = parse_dimacs_file(tmpfile).unwrap();
+    }
+
+    #[test]
+    fn adds_unit_clauses() {
+        let tmpfile = create_tempfile!("
+            p cnf 3 4
+            1 0
+            2 0
+            3 0
+            -1 -3 0
+        ");
+        let cnf = parse_dimacs_file(tmpfile).unwrap();
+        assert_eq!(cnf.units.len(), 3);
     }
 }
