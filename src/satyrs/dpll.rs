@@ -20,14 +20,15 @@ pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
 #[allow(unused_variables)]
 fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
+    let mut _cnf = cnf.clone();
     if cnf.clauses.is_empty() {
         return Some(p_assn)  // Display optional value
     }
-    for unit in &cnf.units {
+    for unit in cnf.units.iter() {
 		let clause = cnf.clauses.get(&unit).expect("Clause not found");
 		let lit = clause[0];
 		p_assn.assign_literal(lit);
-		cnf.unit_propogate(unit); // Only propogate in the clone
+		_cnf.unit_propagate(*unit); // Only propogate in the clone
     }
 
     // If contains an empty clause return False
