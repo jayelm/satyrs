@@ -8,24 +8,26 @@ use satyrs::cnf::{CNF, Assignment, PartialAssignment};
  */
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
-    let _cnf = cnf.clone();
-    println!("DPLL {:?}", _cnf);
-    let p_assn = PartialAssignment::new(_cnf.nvar as usize);
-    match _dpll(&_cnf, p_assn){
+	//let _cnf = cnf.clone();
+    //println!("DPLL {:?}", _cnf);
+    let p_assn = PartialAssignment::new(cnf.nvar as usize);
+    match _dpll(cnf, p_assn){
         Some(assn) => Some(assn.assignment.iter().map(|a| a.unwrap()).collect()),
         None => None
     }
 }
 
 #[allow(unused_variables)]
-fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
+fn _dpll(_cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
+    let cnf = _cnf.clone();
     if cnf.clauses.is_empty() {
         return Some(p_assn)  // Display optional value
     }
     for unit in &cnf.units {
-		
-		println!("{}: IM JUST A LONELY UNIT", unit);
+		let clause = cnf.clauses.get(unit).expect("Unit clause not found!");
+		println!("{:?}: IM JUST A LONELY UNIT CLAUSE", clause);
+		cnf.propogate(clause[0]);
     }
     // If contains an empty clause return False
     // For every unit-clause, unit-propogate
