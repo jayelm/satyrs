@@ -489,18 +489,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "unit clause not found")]
-    fn unit_clause_not_found() {
-        let tmpfile = create_tempfile!("
-            p cnf 2 2
-            1 0
-            1 2 0
-        ");
-        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
-        cnf.unit_propagate(2);
-    }
-
-    #[test]
     fn zeroth_works() {
         let mut hs = HashSet::new();
         hs.insert(5);
