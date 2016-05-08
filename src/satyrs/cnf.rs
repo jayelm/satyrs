@@ -63,16 +63,16 @@ impl CNF {
     /// Unit propagation: propagate the literal associated with the clause id `clause`, and remove
     /// it from `self.units`.
     pub fn unit_propagate(&mut self, unit: i32) {
-		println!("UNIT_PROP {}",unit);
         // Remove clauses with lit and remove lit from occurrences.
 		let clause = match self.clauses.get(&unit) {
 			Some(x) => {
-				if x.is_empty() { Some(zeroth!(x)) } else { None }
+				if !x.is_empty() { Some(zeroth!(x)) } else { None }
 			},
 			None => None
 		};
         if let Some(c) = clause {
 			//TODO: Return here for empty clause
+		    println!("UNIT_PROP {}, ({})",unit, c);
 			self.propagate(c);
 		}
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
@@ -477,12 +477,19 @@ mod tests {
         // There are six clauses and all of them are units. One iteration of dpll will attempt to
         // remove all of these clauses. Even though unit_propagate(0) and unit_propagate(2) will
         // remove all of the clauses, the other unit_propagates should not panic.
+        println!("{}",cnf);
         cnf.unit_propagate(0);
+        println!("{}",cnf);
         cnf.unit_propagate(1);
+        println!("{}",cnf);
         cnf.unit_propagate(2);
+        println!("{}",cnf);
         cnf.unit_propagate(3);
+        println!("{}",cnf);
         cnf.unit_propagate(4);
+        println!("{}",cnf);
         cnf.unit_propagate(5);
+        println!("{}",cnf);
         // The result should be an empty cnf - no clauses, no unit clauses.
         assert_eq!(cnf.clauses.len(), 0);
         assert_eq!(cnf.units.len(), 0);
