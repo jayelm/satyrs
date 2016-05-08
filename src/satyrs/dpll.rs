@@ -36,7 +36,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     // If contains an empty clause return None
     // TODO: Consider optimizing
     for clause in cnf.clauses.values() {
-        if clause.len() == 0 {
+        if clause.is_empty() {
             return None;
         }
     }
@@ -44,10 +44,18 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     // For every unit-clause, unit-propogate
     let mut _cnf = cnf.clone();
     for unit in cnf.units.iter() {
-        let clause = cnf.clauses.get(&unit).expect("Clause not found");
-        let lit : i32 = zeroth!(clause);
-        p_assn.assign_literal(lit);
-        _cnf.unit_propagate(*unit); // Only propogate in the clone
+        // XXX: Previous versions of this for loop could have unit-propagated and
+        // remove the unit clause here, so it's not necessary that the unit clause id
+        // still exists in the clauses.
+        if let Some(clause) = cnf.clauses.get(&unit) {
+            // Then via unit propagation we've created an empty clause; no solution down this path
+            if clause.is_empty() {
+                return None;
+            }
+            let lit : i32 = zeroth!(clause);
+            p_assn.assign_literal(lit);
+            _cnf.unit_propagate(*unit); // Only propogate in the clone
+        }
     } // FIXME: Unit propogate might be the end of things
     println!("After Prop! {}",_cnf);
     // Clone for the right
@@ -55,14 +63,18 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
 
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
-    //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());
-    let literal = match p_assn.unassigned.iter().next();
-	/*		
-	match _cnf.clauses.values().next() {
-        Some(thing) => Some(zeroth!(thing)),
+    //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());	
+    let literal = match _cnf.clauses.values().next() {
+        Some(clause) => {
+            if !clause.is_empty() {
+                Some(zeroth!(clause))
+            } else {
+                return None;
+            }
+        }
         None => None,
     };
-    */
+    
     if literal.is_none() {
         let _p_assn = p_assn.clone();
         return Some(_p_assn);
@@ -80,8 +92,9 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
 
     let left = _dpll(&_cnf, p_assn);
     if left.is_some() { return left; }
+	let neg = lit ^ 1;
     p_assn.unassign_literal(lit);
-    p_assn.assign_literal(lit ^ 1);
-    r_cnf.propagate(lit^1);
-    _dpll(&_cnf, p_assn)
+    p_assn.assign_literal(neg);
+    r_cnf.propagate(neg);
+    _dpll(&r_cnf, p_assn)
 }

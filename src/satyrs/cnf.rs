@@ -72,7 +72,6 @@ impl CNF {
 		};
         if let Some(c) = clause {
 			//TODO: Return here for empty clause
-		    println!("UNIT_PROP {}, ({})",unit, c);
 			self.propagate(c);
 		}
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
@@ -88,7 +87,6 @@ impl CNF {
 		if let Some(vec) = self.occurrences.remove(&lit) {
 			for occ in &vec {
 				self.clauses.remove(occ);
-
 				self.nclause-=1;
 			}
 		}
@@ -125,9 +123,20 @@ impl Clone for CNF {
 
 impl Display for CNF {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let mut fmt_clauses : HashMap<i32,Vec<i32>> = HashMap::new();
+        for clause in self.clauses.iter() {
+            let (id,cl) = clause;
+            fmt_clauses.insert(*id,cl.iter()
+                .map(|l| if l%2==0 {l/2} else {-l/2} ).collect());
+        }
+        let mut fmt_occ : HashMap<i32,&Vec<i32>> = HashMap::new();
+        for occ in self.occurrences.iter() {
+            let (id,oc) = occ;
+            fmt_occ.insert(if *id%2==0 {*id/2} else {-*id/2},oc);
+        }
         let formatted = format!("Nvar: {:?} Nclause: {:?} Units: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
                 self.nvar, self.nclause, self.units,
-                self.clauses, self.occurrences);
+                fmt_clauses, fmt_occ);
         write!(f, "{}", formatted)
     }
 }
@@ -477,19 +486,12 @@ mod tests {
         // There are six clauses and all of them are units. One iteration of dpll will attempt to
         // remove all of these clauses. Even though unit_propagate(0) and unit_propagate(2) will
         // remove all of the clauses, the other unit_propagates should not panic.
-        println!("{}",cnf);
         cnf.unit_propagate(0);
-        println!("{}",cnf);
         cnf.unit_propagate(1);
-        println!("{}",cnf);
         cnf.unit_propagate(2);
-        println!("{}",cnf);
         cnf.unit_propagate(3);
-        println!("{}",cnf);
         cnf.unit_propagate(4);
-        println!("{}",cnf);
         cnf.unit_propagate(5);
-        println!("{}",cnf);
         // The result should be an empty cnf - no clauses, no unit clauses.
         assert_eq!(cnf.clauses.len(), 0);
         assert_eq!(cnf.units.len(), 0);
