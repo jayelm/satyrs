@@ -1,4 +1,5 @@
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
+use std::io;
 
 /**
  * DPLL Algorithm implementation
@@ -51,6 +52,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     println!("After Prop! {}",_cnf);
     // Clone for the right
     let mut r_cnf = _cnf.clone();
+
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
     //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());
@@ -70,6 +72,10 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
 
     // Return DPLL with L and -L
     p_assn.assign_literal(lit);
+
+    let mut buffer = String::new();
+    let _ = io::stdin().read_line(&mut buffer); 
+
     let left = _dpll(&_cnf, p_assn);
     if left.is_some() { return left; }
     p_assn.unassign_literal(lit);
