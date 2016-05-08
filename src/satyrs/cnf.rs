@@ -65,8 +65,16 @@ impl CNF {
     pub fn unit_propagate(&mut self, unit: i32) {
 		println!("UNIT_PROP {}",unit);
         // Remove clauses with lit and remove lit from occurrences.
-        let lit = zeroth!(self.clauses.get(&unit).expect("unit clause not found"));
-        self.propagate(lit);
+		let clause = match self.clauses.get(&unit) {
+			Some(x) => {
+				if x.is_empty() { Some(zeroth!(x)) } else { None }
+			},
+			None => None
+		};
+        if let Some(c) = clause {
+			//TODO: Return here for empty clause
+			self.propagate(c);
+		}
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
         assert!(self.units.remove(&unit));
     }
@@ -80,6 +88,7 @@ impl CNF {
 		if let Some(vec) = self.occurrences.remove(&lit) {
 			for occ in &vec {
 				self.clauses.remove(occ);
+
 				self.nclause-=1;
 			}
 		}

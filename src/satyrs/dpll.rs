@@ -73,8 +73,8 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     // Return DPLL with L and -L
     p_assn.assign_literal(lit);
 
-    let mut buffer = String::new();
-    // let _ = io::stdin().read_line(&mut buffer); 
+    //let mut buffer = String::new();
+    //let _ = io::stdin().read_line(&mut buffer); 
 
     let left = _dpll(&_cnf, p_assn);
     if left.is_some() { return left; }
