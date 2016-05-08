@@ -103,36 +103,37 @@ pub type Assignment = Vec<bool>;
 
 pub struct PartialAssignment {
     pub assignment : Vec<Option<bool>>,
-    pub unassigned : HashSet<i32>,
+    pub unassigned : HashSet<i32>
 }
 
 impl PartialAssignment {
-    pub fn new(n : usize) -> PartialAssignment {
+    pub fn new(n: usize) -> PartialAssignment {
         PartialAssignment {
             assignment : vec!(None; n),
-            unassigned : (0..n as i32).collect(),
+            unassigned : (0..n as i32).collect()
         }
     }
 
-    pub fn assign(&mut self, v : usize, assn : bool) {
+    pub fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
         self.assignment[v] = Some(assn);
     }
 
-    pub fn assign_literal(&mut self, lit : i32){
-        let polarity : bool = lit & 1 == 0;
-        let v : usize = (lit >> 1) as usize;
-        self.assign(v,polarity);
+    pub fn assign_literal(&mut self, lit: i32){
+        let polarity: bool = lit & 1 == 0;
+        let v: usize = (lit >> 1) as usize;
+        println!("{}", v);
+        self.assign(v, polarity);
     }
 
-    pub fn unassign(&mut self, v : usize) {
+    pub fn unassign(&mut self, v: usize) {
         self.assignment[v] = None;
     }
 
-	pub fn unassign_literal(&mut self, lit: i32){
-		let v: usize = (lit >> 1) as usize;
-		self.unassign(v);
-	}
+    pub fn unassign_literal(&mut self, lit: i32){
+        let v: usize = (lit >> 1) as usize;
+        self.unassign(v);
+    }
 }
 
 // TODO: Implement Display
@@ -419,8 +420,6 @@ mod tests {
             1 2 0
         ");
         let mut cnf = parse_dimacs_file(tmpfile).unwrap();
-        println!("{:?}", cnf);
         cnf.unit_propagate(2);
-        println!("{:?}", cnf);
     }
 }
