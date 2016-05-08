@@ -10,19 +10,26 @@ use satyrs::cnf::{CNF, Assignment, PartialAssignment};
 pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
     //let _cnf = cnf.clone();
     //println!("DPLL {:?}", _cnf);
-    let p_assn = PartialAssignment::new(cnf.nvar as usize);
-    match _dpll(cnf, p_assn){
-        Some(assn) => Some(assn.assignment.iter().map(|a| a.unwrap()).collect()),
-        None => None
+    let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
+    match _dpll(cnf, &mut p_assn) {
+        Some(assn) => Some(assn.assignment.iter().map(|a| { 
+            println!("WE HERE ");
+            match *a {
+                Some(a) => a,
+                None => true,
+            }
+        }).collect()),
+        None => None,
     }
 }
 
 #[allow(unused_variables)]
-fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> {
+fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
-    let mut _cnf = cnf.clone();
+    println!("{}\n{}",cnf,p_assn);
     if cnf.clauses.is_empty() {
-        return Some(p_assn);  // Display optional value
+        let _p_assn = p_assn.clone();
+        return Some(_p_assn);  // Display optional value
     }
 
     // If contains an empty clause return None
@@ -34,25 +41,39 @@ fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> 
     }
 
     // For every unit-clause, unit-propogate
+    let mut _cnf = cnf.clone();
     for unit in cnf.units.iter() {
         let clause = cnf.clauses.get(&unit).expect("Clause not found");
-        let lit = clause.iter().next().unwrap();
+        let lit : i32 = zeroth!(clause);
         p_assn.assign_literal(lit);
         _cnf.unit_propagate(*unit); // Only propogate in the clone
-    }
-
+    } // FIXME: Unit propogate might be the end of things
+    println!("After Prop! {}",_cnf);
+    // Clone for the right
+    let mut r_cnf = _cnf.clone();
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
-    let literal: i32 = cnf.clauses.values().next().unwrap().iter().next().unwrap();
+    //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());
+    let literal = match _cnf.clauses.values().next() {
+        Some(thing) => Some(zeroth!(thing)),
+        None => None,
+    };
+    
+    if literal.is_none() {
+        let _p_assn = p_assn.clone();
+        return Some(_p_assn);
+    }
+    let lit = literal.unwrap();
+    println!("Split on {} ({})",lit,lit/2);
+    // Propagate literal
+    _cnf.propagate(lit);
 
     // Return DPLL with L and -L
-    p_assn.assign_literal(literal);
+    p_assn.assign_literal(lit);
     let left = _dpll(&_cnf, p_assn);
-    left
-    // TODO: Copy p_assn. Right now rust is complaining about borrowing.
-    // That will let us include the second part of this algorithm, below:
-    // if left.is_some() { return left; }
-    // p_assn.unassign_literal(literal);
-    // p_assn.assign_literal(literal ^ 1);
-    // _dpll(&_cnf, p_assn)
+    if left.is_some() { return left; }
+    p_assn.unassign_literal(lit);
+    p_assn.assign_literal(lit ^ 1);
+    r_cnf.propagate(lit^1);
+    _dpll(&_cnf, p_assn)
 }
