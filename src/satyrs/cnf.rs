@@ -94,6 +94,7 @@ impl CNF {
 			for occ in &vec {
 				if let Some(mut c) = self.clauses.remove(occ) {
 					c.remove(&neg);
+					if c.len()==1 { self.units.insert(*occ); }
 					self.clauses.insert(*occ, c);
 				}
 			}
