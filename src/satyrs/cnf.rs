@@ -114,7 +114,7 @@ impl PartialAssignment {
         }
     }
 
-    pub fn assign(&mut self, v: usize, assn: bool) {
+    fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
         self.assignment[v] = Some(assn);
     }
@@ -122,17 +122,16 @@ impl PartialAssignment {
     pub fn assign_literal(&mut self, lit: i32){
         let polarity: bool = lit & 1 == 0;
         let v: usize = (lit >> 1) as usize;
-        println!("{}", v);
-        self.assign(v, polarity);
+        self.assign(v - 1, polarity);
     }
 
-    pub fn unassign(&mut self, v: usize) {
+    fn unassign(&mut self, v: usize) {
         self.assignment[v] = None;
     }
 
     pub fn unassign_literal(&mut self, lit: i32){
         let v: usize = (lit >> 1) as usize;
-        self.unassign(v);
+        self.unassign(v - 1);
     }
 }
 
