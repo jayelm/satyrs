@@ -56,11 +56,13 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
     //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());
-    let literal = match _cnf.clauses.values().next() {
+    let literal = match p_assn.unassigned.iter().next();
+	/*		
+	match _cnf.clauses.values().next() {
         Some(thing) => Some(zeroth!(thing)),
         None => None,
     };
-    
+    */
     if literal.is_none() {
         let _p_assn = p_assn.clone();
         return Some(_p_assn);
