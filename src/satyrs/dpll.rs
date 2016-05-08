@@ -1,40 +1,34 @@
-use satyrs::cnf::{CNF, Assignment, PartialAssignment};
-use std::io;
+//! DPLL Algorithm implementation with unit-clause propagation and
+//! (TODO) pure literal assignment.
 
-/**
- * DPLL Algorithm implementation
- * Start by cloning the cnf so we can modify the HashMap
- * Clone might be slow, consider a faster option
- * TODO: Consider using HashSet instead of Vec for the clauses
- */
+use satyrs::cnf::{CNF, Assignment, PartialAssignment};
+
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<Assignment> {
     let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
     match _dpll(cnf, &mut p_assn, verbose) {
-        Some(assn) => Some(assn.assignment.iter().map(|a| { 
+        Some(assn) => Some(assn.assignment.iter().map(|a| {
             match *a {
                 Some(a) => a,
-                None => true,
+                None => true
             }
         }).collect()),
         None => None
     }
 }
 
-#[allow(unused_variables)]
 fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<PartialAssignment> {
-    // If consistent set of literals, return True
     if verbose {
         println!("====DPLL====\n");
         println!("{}\n{}", cnf, p_assn);
     }
+    // If consistent set of literals, return True
     if cnf.clauses.is_empty() {
         let _p_assn = p_assn.clone();
         return Some(_p_assn);  // Display optional value
     }
 
     // If contains an empty clause return None
-    // TODO: Consider optimizing
     for clause in cnf.clauses.values() {
         if clause.is_empty() {
             return None;
@@ -44,7 +38,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     // For every unit-clause, unit-propogate
     let mut _cnf = cnf.clone();
     for unit in cnf.units.iter() {
-        // XXX: Previous versions of this for loop could have unit-propagated and
+        // Previous versions of this for loop could have unit-propagated and
         // remove the unit clause here, so it's not necessary that the unit clause id
         // still exists in the clauses.
         if let Some(clause) = cnf.clauses.get(&unit) {
@@ -55,25 +49,27 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
             let lit : i32 = zeroth!(clause);
             p_assn.assign_literal(lit);
             _cnf.unit_propagate(*unit); // Only propogate in the clone
+            // TODO: Could have check for empty clauses in unit_propagate
         }
-    } // FIXME: Unit propogate might be the end of things
-    // Clone for the right
+    }
+    // Clone for the right literal, since we're going to propagate _cnf with the left literal
     let mut r_cnf = _cnf.clone();
 
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
-    //let literal: i32 = zeroth!(_cnf.clauses.values().next().unwrap());
     let literal = match _cnf.clauses.values().next() {
         Some(clause) => {
             if !clause.is_empty() {
                 Some(zeroth!(clause))
             } else {
+                // This will return out of the *function* - we found an empty clause, so formula is
+                // not satisfiable.
                 return None;
             }
         }
         None => None,
     };
-    
+
     if literal.is_none() {
         let _p_assn = p_assn.clone();
         return Some(_p_assn);
@@ -92,16 +88,16 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     // Return DPLL with L and -L
     p_assn.assign_literal(lit);
 
-    //let mut buffer = String::new();
-    //let _ = io::stdin().read_line(&mut buffer); 
-
-
     if verbose { println!("Trying left"); }
     let left = _dpll(&_cnf, p_assn, verbose);
+    // If this branch works, return left.
     if left.is_some() { return left; }
+
+    // Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
     p_assn.unassign_literal(lit);
     p_assn.assign_literal(lit ^ 1);
-    r_cnf.propagate(lit^1);
+
+    r_cnf.propagate(lit ^ 1);
     if verbose { println!("Trying right"); }
     _dpll(&r_cnf, p_assn, verbose)
 }
