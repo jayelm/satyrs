@@ -36,14 +36,14 @@ fn _dpll(cnf: &CNF, mut p_assn: PartialAssignment) -> Option<PartialAssignment> 
     // For every unit-clause, unit-propogate
     for unit in cnf.units.iter() {
         let clause = cnf.clauses.get(&unit).expect("Clause not found");
-        let lit = clause[0];
+        let lit = clause.iter().next().unwrap();
         p_assn.assign_literal(lit);
         _cnf.unit_propagate(*unit); // Only propogate in the clone
     }
 
     // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
-    let literal: i32 = cnf.clauses.values().next().unwrap()[0];
+    let literal: i32 = cnf.clauses.values().next().unwrap().iter().next().unwrap();
 
     // Return DPLL with L and -L
     p_assn.assign_literal(literal);

@@ -21,7 +21,7 @@ use std::clone::Clone;
 pub struct CNF {
     pub nvar        : i32,
     pub nclause     : i32,
-    pub clauses     : HashMap<i32, Vec<i32>>,
+    pub clauses     : HashMap<i32, HashSet<i32>>,
     pub occurrences : HashMap<i32, Vec<i32>>,
     pub units       : HashSet<i32>
 }
@@ -40,7 +40,7 @@ impl CNF {
     /// Add a clause, return the ID of the inserted clause
     /// Right now, this isn't public; api is odd as we have an odd representation of literals.
     /// TODO: Mask this with public function?
-    fn add_clause(&mut self, clause: Vec<i32>) -> i32 {
+    fn add_clause(&mut self, clause: HashSet<i32>) -> i32 {
         assert!(clause.len() > 0);
         let id: i32 = self.clauses.len() as i32;
         if clause.len() == 1 { self.units.insert(id); }
@@ -56,7 +56,7 @@ impl CNF {
     /// it from `self.units`.
     pub fn unit_propagate(&mut self, unit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
-        let lit = self.clauses.get(&unit).expect("unit clause not found")[0];
+        let lit = self.clauses.get(&unit).expect("unit clause not found").iter().next().unwrap();
         self.propagate(lit);
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
         assert!(self.units.remove(&unit));
@@ -70,6 +70,13 @@ impl CNF {
         // Remove clauses with lit and remove lit from occurrences.
         for occ in &self.occurrences.remove(&lit).unwrap() {
             self.clauses.remove(occ);
+        }
+        // Remove ~lit from other clauses
+        for occ in &self.occurrences.remove(&(lit^1)).unwrap() {
+            match self.clauses.get(occ) {
+                Some(clause) => println!("{:?}",clause),
+                None => println!("None"),
+            }
         }
     }
 }
@@ -200,7 +207,7 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
             _   => {
                 clauses_read = clauses_read + 1;
                 if clauses_read > nclause { return Err("too many clauses in file"); }
-                let tokens: Vec<i32> = words.iter()
+                let tokens: HashSet<i32> = words.iter()
                     .filter_map(|s| {
                         let n = s.parse::<i32>().unwrap();
                         // FIXME: This ignores zeros not just as line enders but in the formulas
