@@ -1,6 +1,6 @@
 extern crate tempfile;
 
-use std::fmt::{ Display, Formatter, Error };
+use std::fmt::{Display, Formatter, Error};
 use std::iter::Iterator;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -27,21 +27,21 @@ macro_rules! zeroth {
  */
 #[derive(Debug)]
 pub struct CNF {
-    pub nvar        : i32,
-    pub nclause     : i32,
-    pub clauses     : HashMap<i32, HashSet<i32>>,
-    pub occurrences : HashMap<i32, Vec<i32>>,
-    pub units       : HashSet<i32>
+    pub nvar: i32,
+    pub nclause: i32,
+    pub clauses: HashMap<i32, HashSet<i32>>,
+    pub occurrences: HashMap<i32, Vec<i32>>,
+    pub units: HashSet<i32>,
 }
 
 impl CNF {
     pub fn new(nvar: i32, nclause: i32) -> CNF {
         CNF {
-            nvar        : nvar,
-            nclause     : nclause,
-            clauses     : HashMap::new(),
-            occurrences : HashMap::new(),
-            units       : HashSet::new(),
+            nvar: nvar,
+            nclause: nclause,
+            clauses: HashMap::new(),
+            occurrences: HashMap::new(),
+            units: HashSet::new(),
         }
     }
 
@@ -51,7 +51,9 @@ impl CNF {
     fn add_clause(&mut self, clause: HashSet<i32>) -> i32 {
         assert!(clause.len() > 0);
         let id: i32 = self.clauses.len() as i32;
-        if clause.len() == 1 { self.units.insert(id); }
+        if clause.len() == 1 {
+            self.units.insert(id);
+        }
         for var in &clause {
             let occ = self.occurrences.entry(*var).or_insert(Vec::new());
             occ.push(id);
@@ -64,16 +66,20 @@ impl CNF {
     /// it from `self.units`.
     pub fn unit_propagate(&mut self, unit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
-		let clause = match self.clauses.get(&unit) {
-			Some(x) => {
-				if !x.is_empty() { Some(zeroth!(x)) } else { None }
-			},
-			None => None
-		};
+        let clause = match self.clauses.get(&unit) {
+            Some(x) => {
+                if !x.is_empty() {
+                    Some(zeroth!(x))
+                } else {
+                    None
+                }
+            }
+            None => None,
+        };
         if let Some(c) = clause {
-			//TODO: Return here for empty clause
-			self.propagate(c);
-		}
+            // TODO: Return here for empty clause
+            self.propagate(c);
+        }
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
         assert!(self.units.remove(&unit));
     }
@@ -83,60 +89,77 @@ impl CNF {
     /// TODO: unit_propagate and propagate should return true/false
     /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
-		// Remove clauses with lit and remove lit from occurrences.
-		if let Some(vec) = self.occurrences.remove(&lit) {
-			for occ in &vec {
-				self.clauses.remove(occ);
-				self.nclause-=1;
-			}
-		}
+        // Remove clauses with lit and remove lit from occurrences.
+        if let Some(vec) = self.occurrences.remove(&lit) {
+            for occ in &vec {
+                self.clauses.remove(occ);
+                self.nclause -= 1;
+            }
+        }
 
         // Remove ~lit from other clausesa
-		self.remove_negation(lit);
+        self.remove_negation(lit);
     }
 
-	fn remove_negation(&mut self, lit : i32){
-		let neg = lit^1;
-		if let Some(vec) = self.occurrences.remove(&neg) {
-			for occ in &vec {
-				if let Some(mut c) = self.clauses.remove(occ) {
-					c.remove(&neg);
-					if c.len()==1 { self.units.insert(*occ); }
-					self.clauses.insert(*occ, c);
-				}
-			}
-		}
-	}
+    fn remove_negation(&mut self, lit: i32) {
+        let neg = lit ^ 1;
+        if let Some(vec) = self.occurrences.remove(&neg) {
+            for occ in &vec {
+                if let Some(mut c) = self.clauses.remove(occ) {
+                    c.remove(&neg);
+                    if c.len() == 1 {
+                        self.units.insert(*occ);
+                    }
+                    self.clauses.insert(*occ, c);
+                }
+            }
+        }
+    }
 }
 
 impl Clone for CNF {
     fn clone(&self) -> CNF {
         CNF {
-            nvar        : self.nvar,
-            nclause     : self.nclause,
-            clauses     : self.clauses.clone(),
-            occurrences : self.occurrences.clone(),
-            units       : self.units.clone()
+            nvar: self.nvar,
+            nclause: self.nclause,
+            clauses: self.clauses.clone(),
+            occurrences: self.occurrences.clone(),
+            units: self.units.clone(),
         }
     }
 }
 
 impl Display for CNF {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        let mut fmt_clauses : HashMap<i32,Vec<i32>> = HashMap::new();
+        let mut fmt_clauses: HashMap<i32, Vec<i32>> = HashMap::new();
         for clause in self.clauses.iter() {
-            let (id,cl) = clause;
-            fmt_clauses.insert(*id,cl.iter()
-                .map(|l| if l%2==0 {l/2} else {-l/2} ).collect());
+            let (id, cl) = clause;
+            fmt_clauses.insert(*id,
+                               cl.iter()
+                                 .map(|l| if l % 2 == 0 {
+                                     l / 2
+                                 } else {
+                                     -l / 2
+                                 })
+                                 .collect());
         }
-        let mut fmt_occ : HashMap<i32,&Vec<i32>> = HashMap::new();
+        let mut fmt_occ: HashMap<i32, &Vec<i32>> = HashMap::new();
         for occ in self.occurrences.iter() {
-            let (id,oc) = occ;
-            fmt_occ.insert(if *id%2==0 {*id/2} else {-*id/2},oc);
+            let (id, oc) = occ;
+            fmt_occ.insert(if *id % 2 == 0 {
+                               *id / 2
+                           } else {
+                               -*id / 2
+                           },
+                           oc);
         }
-        let formatted = format!("Nvar: {:?} Nclause: {:?} Units: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
-                self.nvar, self.nclause, self.units,
-                fmt_clauses, fmt_occ);
+        let formatted = format!("Nvar: {:?} Nclause: {:?} Units: {:?}\nClauses: \
+                                 {:?}\nOccurrrences: {:?}",
+                                self.nvar,
+                                self.nclause,
+                                self.units,
+                                fmt_clauses,
+                                fmt_occ);
         write!(f, "{}", formatted)
     }
 }
@@ -148,25 +171,25 @@ impl Display for CNF {
 pub type Assignment = Vec<bool>;
 
 pub struct PartialAssignment {
-    pub assignment : Vec<Option<bool>>,
-    pub unassigned : HashSet<i32>
+    pub assignment: Vec<Option<bool>>,
+    pub unassigned: HashSet<i32>,
 }
 
 impl PartialAssignment {
     pub fn new(n: usize) -> PartialAssignment {
         PartialAssignment {
-            assignment : vec!(None; n),
-            unassigned : (0..n as i32).collect()
+            assignment: vec!(None; n),
+            unassigned: (0..n as i32).collect(),
         }
     }
 
     fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
         self.assignment[v] = Some(assn);
-		self.unassigned.remove(&(v as i32));
+        self.unassigned.remove(&(v as i32));
     }
 
-    pub fn assign_literal(&mut self, lit: i32){
+    pub fn assign_literal(&mut self, lit: i32) {
         let polarity: bool = lit & 1 == 0;
         let v: usize = (lit >> 1) as usize;
         self.assign(v - 1, polarity);
@@ -174,10 +197,10 @@ impl PartialAssignment {
 
     fn unassign(&mut self, v: usize) {
         self.assignment[v] = None;
-		self.unassigned.insert(v as i32);
+        self.unassigned.insert(v as i32);
     }
 
-    pub fn unassign_literal(&mut self, lit: i32){
+    pub fn unassign_literal(&mut self, lit: i32) {
         let v: usize = (lit >> 1) as usize;
         self.unassign(v - 1);
     }
@@ -185,9 +208,9 @@ impl PartialAssignment {
 
 impl Clone for PartialAssignment {
     fn clone(&self) -> PartialAssignment {
-		PartialAssignment {
-            assignment : self.assignment.clone(),
-            unassigned : self.unassigned.clone(),
+        PartialAssignment {
+            assignment: self.assignment.clone(),
+            unassigned: self.unassigned.clone(),
         }
     }
 }
@@ -196,7 +219,8 @@ impl Clone for PartialAssignment {
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let formatted = format!("Assignemnts: {:?}\nUnassigned: {:?}",
-                self.assignment, self.unassigned);
+                                self.assignment,
+                                self.unassigned);
         write!(f, "{}", formatted)
     }
 }
@@ -216,32 +240,39 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
     for line in &mut line_iterator {
         let line = line.expect("could not read file");  // Unwrap result
         let words: Vec<&str> = line.split_whitespace().collect();
-        if words.len() == 0 { continue; } // Ignore empty lines
+        if words.len() == 0 {
+            continue;
+        } // Ignore empty lines
         match words[0] {
-            "c" => { }
-            "p" => { // Problem statement
+            "c" => {}
+            "p" => {
+                // Problem statement
                 // Must have format "p cnf nvar nclause"
                 if words.len() != 4 || words[1] != "cnf" {
                     return Err("invalid problem statement");
                 }
-                nvar = words[2].parse()
-                    .expect(&format!("invalid number of variables {}", words[2]));
-                nclause = words[3].parse()
-                    .expect(&format!("invalid number of clauses {}", words[3]));
+                nvar = words[2]
+                           .parse()
+                           .expect(&format!("invalid number of variables {}", words[2]));
+                nclause = words[3]
+                              .parse()
+                              .expect(&format!("invalid number of clauses {}", words[3]));
                 break;
             }
             // TODO: Add words[0] to this error message
-            _ => { return Err("unknown statement beginning"); }
+            _ => {
+                return Err("unknown statement beginning");
+            }
         }
     }
     // Then nvar, nclause were never initialized
     if nvar == -1 || nclause == -1 {
-       return Err("no problem statement found");
+        return Err("no problem statement found");
     }
     // TODO: Different errors for different descriptions (hence why I've split up this if
     // statement)
     if nvar == 0 || nclause == 0 {
-        return Err("invalid number of literals in problem")
+        return Err("invalid number of literals in problem");
     }
 
     // Initialize CNF and parse the rest of the file
@@ -250,13 +281,19 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
     for line in &mut line_iterator {
         let line = line.unwrap();
         let words: Vec<&str> = line.split_whitespace().collect();
-        if words.len() == 0 { continue; }
+        if words.len() == 0 {
+            continue;
+        }
         match words[0] {
-            "c" => { }
-            "p" => { return Err("duplicate problem statement"); }
-            _   => {
+            "c" => {}
+            "p" => {
+                return Err("duplicate problem statement");
+            }
+            _ => {
                 clauses_read = clauses_read + 1;
-                if clauses_read > nclause { return Err("too many clauses in file"); }
+                if clauses_read > nclause {
+                    return Err("too many clauses in file");
+                }
                 let tokens: HashSet<i32> = words.iter()
                     .filter_map(|s| {
                         let n = s.parse::<i32>().unwrap();
@@ -275,7 +312,9 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
         }
     }
     // Double check that the number of clauses read is equal
-    if clauses_read != nclause { return Err("too few clauses in file"); }
+    if clauses_read != nclause {
+        return Err("too few clauses in file");
+    }
     Ok(cnf)
 }
 

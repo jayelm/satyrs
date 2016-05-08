@@ -7,13 +7,18 @@ use satyrs::cnf::{CNF, Assignment, PartialAssignment};
 pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<Assignment> {
     let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
     match _dpll(cnf, &mut p_assn, verbose) {
-        Some(assn) => Some(assn.assignment.iter().map(|a| {
-            match *a {
-                Some(a) => a,
-                None => true
-            }
-        }).collect()),
-        None => None
+        Some(assn) => {
+            Some(assn.assignment
+                     .iter()
+                     .map(|a| {
+                         match *a {
+                             Some(a) => a,
+                             None => true,
+                         }
+                     })
+                     .collect())
+        }
+        None => None,
     }
 }
 
@@ -46,7 +51,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
             if clause.is_empty() {
                 return None;
             }
-            let lit : i32 = zeroth!(clause);
+            let lit: i32 = zeroth!(clause);
             p_assn.assign_literal(lit);
             _cnf.unit_propagate(*unit); // Only propogate in the clone
             // TODO: Could have check for empty clauses in unit_propagate
@@ -76,9 +81,11 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     }
     let lit = literal.unwrap();
     if verbose {
-        if lit & 1 == 0 { // True
+        if lit & 1 == 0 {
+            // True
             println!("Splitting on {}", lit / 2);
-        } else { // False
+        } else {
+            // False
             println!("Splitting on -{}", lit / 2);
         }
     }
@@ -88,17 +95,23 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     // Return DPLL with L and -L
     p_assn.assign_literal(lit);
 
-    if verbose { println!("Trying left"); }
+    if verbose {
+        println!("Trying left");
+    }
     let left = _dpll(&_cnf, p_assn, verbose);
     // If this branch works, return left.
-    if left.is_some() { return left; }
-    
-	// Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
-	let neg = lit ^ 1;
+    if left.is_some() {
+        return left;
+    }
+
+    // Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
+    let neg = lit ^ 1;
     p_assn.unassign_literal(lit);
     p_assn.assign_literal(neg);
 
     r_cnf.propagate(neg);
-    if verbose { println!("Trying right"); }
+    if verbose {
+        println!("Trying right");
+    }
     _dpll(&r_cnf, p_assn, verbose)
 }
