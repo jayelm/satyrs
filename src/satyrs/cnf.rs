@@ -63,8 +63,9 @@ impl CNF {
     /// Unit propagation: propagate the literal associated with the clause id `clause`, and remove
     /// it from `self.units`.
     pub fn unit_propagate(&mut self, unit: i32) {
+		println!("UNIT_PROP {}",unit);
         // Remove clauses with lit and remove lit from occurrences.
-        let lit = self.clauses.get(&unit).expect("unit clause not found").iter().next().unwrap();
+        let lit = zeroth!(self.clauses.get(&unit).expect("unit clause not found"));
         self.propagate(lit);
         // This needs to be true, i.e. unit clause id needs to be in the unit clauses
         assert!(self.units.remove(&unit));
@@ -75,18 +76,29 @@ impl CNF {
     /// TODO: unit_propagate and propagate should return true/false
     /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
-        // Remove clauses with lit and remove lit from occurrences.
-        for occ in &self.occurrences.remove(&lit).unwrap() {
-            self.clauses.remove(occ);
-        }
-        // Remove ~lit from other clauses
-        for occ in &self.occurrences.remove(&(lit^1)).unwrap() {
-            match self.clauses.get(occ) {
-                Some(clause) => println!("{:?}",clause),
-                None => println!("None"),
-            }
-        }
+		// Remove clauses with lit and remove lit from occurrences.
+		if let Some(vec) = self.occurrences.remove(&lit) {
+			for occ in &vec {
+				self.clauses.remove(occ);
+				self.nclause-=1;
+			}
+		}
+
+        // Remove ~lit from other clausesa
+		self.remove_negation(lit);
     }
+
+	fn remove_negation(&mut self, lit : i32){
+		let neg = lit^1;
+		if let Some(vec) = self.occurrences.remove(&neg) {
+			for occ in &vec {
+				if let Some(mut c) = self.clauses.remove(occ) {
+					c.remove(&neg);
+					self.clauses.insert(*occ, c);
+				}
+			}
+		}
+	}
 }
 
 impl Clone for CNF {
@@ -103,8 +115,8 @@ impl Clone for CNF {
 
 impl Display for CNF {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        let formatted = format!("Nvar: {:?} Nclause: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
-                self.nvar, self.nclause,
+        let formatted = format!("Nvar: {:?} Nclause: {:?} Units: {:?}\nClauses: {:?}\nOccurrrences: {:?}",
+                self.nvar, self.nclause, self.units,
                 self.clauses, self.occurrences);
         write!(f, "{}", formatted)
     }
@@ -132,6 +144,7 @@ impl PartialAssignment {
     fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
         self.assignment[v] = Some(assn);
+		self.unassigned.remove(&(v as i32));
     }
 
     pub fn assign_literal(&mut self, lit: i32){
@@ -142,11 +155,21 @@ impl PartialAssignment {
 
     fn unassign(&mut self, v: usize) {
         self.assignment[v] = None;
+		self.unassigned.insert(v as i32);
     }
 
     pub fn unassign_literal(&mut self, lit: i32){
         let v: usize = (lit >> 1) as usize;
         self.unassign(v - 1);
+    }
+}
+
+impl Clone for PartialAssignment {
+    fn clone(&self) -> PartialAssignment {
+		PartialAssignment {
+            assignment : self.assignment.clone(),
+            unassigned : self.unassigned.clone(),
+        }
     }
 }
 
