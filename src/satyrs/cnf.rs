@@ -11,6 +11,14 @@ use std::fs::File;
 
 use std::clone::Clone;
 
+/// Get the (arbitrary) zeroth element of a hashset.
+#[marco_export]
+macro_rules! zeroth {
+    ($hs: expr) => {{
+        *$hs.iter().next().unwrap()
+    }}
+}
+
 /**
  * test can be deleted.
  * clauses will house all clauses, key is int so that we can use occurrences
@@ -245,8 +253,10 @@ mod tests {
     use std::fs::File;
     use std::io::prelude::*;
     use std::io::SeekFrom;
+    use std::collections::HashSet;
 
     use super::parse_dimacs_file;
+    // use super::zeroth;
 
     macro_rules! create_tempfile {
         ($x: expr) => {{
@@ -427,5 +437,21 @@ mod tests {
         ");
         let mut cnf = parse_dimacs_file(tmpfile).unwrap();
         cnf.unit_propagate(2);
+    }
+
+    #[test]
+    fn zeroth_works() {
+        let mut hs = HashSet::new();
+        hs.insert(5);
+        assert_eq!(zeroth!(hs), 5);
+    }
+
+    #[test]
+    fn zeroth_works_2() {
+        let mut hs = HashSet::new();
+        hs.insert(5);
+        hs.insert(535);
+        let zth = zeroth!(hs);
+        assert!(zth == 5 || zth == 535);
     }
 }
