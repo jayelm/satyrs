@@ -92,12 +92,13 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     let left = _dpll(&_cnf, p_assn, verbose);
     // If this branch works, return left.
     if left.is_some() { return left; }
-
-    // Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
+    
+	// Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
+	let neg = lit ^ 1;
     p_assn.unassign_literal(lit);
-    p_assn.assign_literal(lit ^ 1);
+    p_assn.assign_literal(neg);
 
-    r_cnf.propagate(lit ^ 1);
+    r_cnf.propagate(neg);
     if verbose { println!("Trying right"); }
     _dpll(&r_cnf, p_assn, verbose)
 }
