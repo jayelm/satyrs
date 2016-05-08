@@ -95,5 +95,5 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     p_assn.unassign_literal(lit);
     p_assn.assign_literal(lit ^ 1);
     r_cnf.propagate(lit^1);
-    _dpll(&_cnf, p_assn)
+    _dpll(&r_cnf, p_assn)
 }
