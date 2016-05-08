@@ -8,26 +8,26 @@ use std::io;
  * TODO: Consider using HashSet instead of Vec for the clauses
  */
 #[allow(non_snake_case)]
-pub fn DPLL(cnf: &CNF) -> Option<Assignment> {
-    //let _cnf = cnf.clone();
-    //println!("DPLL {:?}", _cnf);
+pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<Assignment> {
     let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
-    match _dpll(cnf, &mut p_assn) {
+    match _dpll(cnf, &mut p_assn, verbose) {
         Some(assn) => Some(assn.assignment.iter().map(|a| { 
-            println!("WE HERE ");
             match *a {
                 Some(a) => a,
                 None => true,
             }
         }).collect()),
-        None => None,
+        None => None
     }
 }
 
 #[allow(unused_variables)]
-fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment> {
+fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<PartialAssignment> {
     // If consistent set of literals, return True
-    println!("{}\n{}",cnf,p_assn);
+    if verbose {
+        println!("====DPLL====\n");
+        println!("{}\n{}", cnf, p_assn);
+    }
     if cnf.clauses.is_empty() {
         let _p_assn = p_assn.clone();
         return Some(_p_assn);  // Display optional value
@@ -57,7 +57,6 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
             _cnf.unit_propagate(*unit); // Only propogate in the clone
         }
     } // FIXME: Unit propogate might be the end of things
-    println!("After Prop! {}",_cnf);
     // Clone for the right
     let mut r_cnf = _cnf.clone();
 
@@ -80,7 +79,13 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
         return Some(_p_assn);
     }
     let lit = literal.unwrap();
-    println!("Split on {} ({})",lit,lit/2);
+    if verbose {
+        if lit & 1 == 0 { // True
+            println!("Splitting on {}", lit / 2);
+        } else { // False
+            println!("Splitting on -{}", lit / 2);
+        }
+    }
     // Propagate literal
     _cnf.propagate(lit);
 
@@ -90,10 +95,13 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment) -> Option<PartialAssignment>
     //let mut buffer = String::new();
     //let _ = io::stdin().read_line(&mut buffer); 
 
-    let left = _dpll(&_cnf, p_assn);
+
+    if verbose { println!("Trying left"); }
+    let left = _dpll(&_cnf, p_assn, verbose);
     if left.is_some() { return left; }
     p_assn.unassign_literal(lit);
     p_assn.assign_literal(lit ^ 1);
     r_cnf.propagate(lit^1);
-    _dpll(&r_cnf, p_assn)
+    if verbose { println!("Trying right"); }
+    _dpll(&r_cnf, p_assn, verbose)
 }
