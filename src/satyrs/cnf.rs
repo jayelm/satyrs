@@ -451,6 +451,34 @@ mod tests {
         assert!(cnf.units.is_empty());
     }
 
+    /// This one is making sure that if unit_propagate removes a separate unit clause, the separate
+    /// unit clause can still be unit propagated and will fail gracefully
+    #[test]
+    fn unit_propagate_works_special() {
+        let tmpfile = create_tempfile!("
+            p cnf 2 6
+            1 0
+            1 0
+            2 0
+            2 0
+            2 0
+            2 0
+        ");
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        // There are six clauses and all of them are units. One iteration of dpll will attempt to
+        // remove all of these clauses. Even though unit_propagate(0) and unit_propagate(2) will
+        // remove all of the clauses, the other unit_propagates should not panic.
+        cnf.unit_propagate(0);
+        cnf.unit_propagate(1);
+        cnf.unit_propagate(2);
+        cnf.unit_propagate(3);
+        cnf.unit_propagate(4);
+        cnf.unit_propagate(5);
+        // The result should be an empty cnf - no clauses, no unit clauses.
+        assert_eq!(cnf.clauses.len(), 0);
+        assert_eq!(cnf.units.len(), 0);
+    }
+
     #[test]
     #[should_panic(expected = "unit clause not found")]
     fn unit_clause_not_found() {
@@ -478,4 +506,6 @@ mod tests {
         let zth = zeroth!(hs);
         assert!(zth == 5 || zth == 535);
     }
+
+    // TODO: nclauses bookkeeping test.
 }
