@@ -321,11 +321,7 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
 pub fn parse_dimacs_file(f: File) -> Result<CNF, &'static str> {
     // Read the file
     let mut reader = BufReader::new(f);
-
-    // TODO: This is definitely not the correct way to handle errors.
-    // Should parse_dimacs have options for returning an error AND panicking?
-    let line = parse_dimacs(&mut reader);
-    line
+    parse_dimacs(&mut reader)
 }
 
 #[cfg(test)]
