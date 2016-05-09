@@ -533,6 +533,29 @@ mod tests {
     }
 
     #[test]
+    fn remove_negation_adds_units() {
+        let tmpfile = create_tempfile!("
+            p cnf 4 4
+            1 0
+            2 -1 0
+            3 -1 0
+            4 1 0
+        ");
+        // After propagating unit clause 0, there should be two unit clauses in the subsequent
+        // formula.
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        cnf.unit_propagate(0);
+        assert_eq!(cnf.units.len(), 2);
+        // Unit prop should have removed clauses 0 and 3
+        assert!(!cnf.units.contains(&0));
+        assert!(!cnf.units.contains(&3));
+
+        // But should have added clauses 2 and 3
+        assert!(cnf.units.contains(&1));
+        assert!(cnf.units.contains(&2));
+    }
+
+    #[test]
     fn zeroth_works() {
         let mut hs = HashSet::new();
         hs.insert(5);
