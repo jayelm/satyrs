@@ -1,5 +1,5 @@
 //! DPLL Algorithm implementation with unit-clause propagation and
-//! (TODO) pure literal assignment.
+//! pure literal assignment.
 
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
 
@@ -57,10 +57,20 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
             // TODO: Could have check for empty clauses in unit_propagate
         }
     }
+
+    // Pure literal elimination
+    // We can iterate through old cnf occurrences and propagate on new _cnf
+    for lit in cnf.occurrences.keys() {
+        let neg = *lit ^ 1;
+        if !cnf.occurrences.contains_key(&neg) {
+            p_assn.assign_literal(*lit);
+            _cnf.propagate(*lit);
+        }
+    }
+
     // Clone for the right literal, since we're going to propagate _cnf with the left literal
     let mut r_cnf = _cnf.clone();
 
-    // TODO: For every pure literal, pure literal assign
     // Choose literal L for split
     let literal = match _cnf.clauses.values().next() {
         Some(clause) => {
