@@ -2,6 +2,7 @@ extern crate tempfile;
 
 use std::fmt::{Display, Formatter, Error};
 use std::iter::Iterator;
+use std::iter::IntoIterator;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::vec::Vec;
@@ -19,22 +20,23 @@ macro_rules! zeroth {
     }}
 }
 
-/**
- * test can be deleted.
- * clauses will house all clauses, key is int so that we can use occurrences
- * ID for simplifications later
- * occurrences tracks which clauses literals are used in
- */
+
+/// CNF will house all clauses, key is int so that we can use occurrences
+/// Occurrences tracks which clauses literals are used in for simplifications
+/// in DPLL.
 #[derive(Debug)]
 pub struct CNF {
     pub nvar: i32,
     pub nclause: i32,
     pub clauses: HashMap<i32, HashSet<i32>>,
-    pub occurrences: HashMap<i32, Vec<i32>>,
+    pub occurrences: HashMap<i32, HashSet<i32>>,
     pub units: HashSet<i32>,
 }
 
 impl CNF {
+	/// Create a new CNF using the p specifications in the DIMACS file.	
+	/// Number of variables and clauses must be known.
+	/// If using add_clause, set `nclause` to 0.
     pub fn new(nvar: i32, nclause: i32) -> CNF {
         CNF {
             nvar: nvar,
@@ -43,20 +45,39 @@ impl CNF {
             occurrences: HashMap::new(),
             units: HashSet::new(),
         }
-    }
+    }	
+
+	/// The user friendly function for adding a clause to the CNF.
+	/// Still requires that the CNF be created with proper number of variables
+	#[allow(dead_code)]
+	pub fn add_clause(&mut self, clause: Vec<i32>){
+		let hs : HashSet<i32> = clause.into_iter().filter_map(|n| {
+                        // FIXME: This ignores zeros not just as line enders but in the formulas
+                        // themselves. Split on zeros at the end here.
+                        if n == 0 { return None; }
+                        // FIXME: This should return an error instead of
+                        // panicking, but I can't return an error
+                        // in a closure
+                        if n > self.nvar { panic!("variable out of range: {}", n); }
+                        Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
+                    })
+                    .collect();
+		self.nclause+=1;
+		self._add_clause(hs);
+	}
 
     /// Add a clause, return the ID of the inserted clause
     /// Right now, this isn't public; api is odd as we have an odd representation of literals.
     /// TODO: Mask this with public function?
-    fn add_clause(&mut self, clause: HashSet<i32>) -> i32 {
+    fn _add_clause(&mut self, clause: HashSet<i32>) -> i32 {
         assert!(clause.len() > 0);
         let id: i32 = self.clauses.len() as i32;
         if clause.len() == 1 {
             self.units.insert(id);
         }
         for var in &clause {
-            let occ = self.occurrences.entry(*var).or_insert(Vec::new());
-            occ.push(id);
+            let occ = self.occurrences.entry(*var).or_insert(HashSet::new());
+            occ.insert(id);
         }
         self.clauses.insert(id, clause);
         id
@@ -86,13 +107,22 @@ impl CNF {
 
     /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
     /// from the remaining clauses.
+	/// Ex: (p^q^r)v(~q). Assign q false and fix equation to (p^r)
     /// TODO: unit_propagate and propagate should return true/false
     /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
-        if let Some(vec) = self.occurrences.remove(&lit) {
-            for occ in &vec {
-                self.clauses.remove(occ);
+		if let Some(vec) = self.occurrences.remove(&lit) {
+			for occ in &vec {
+				if let Some(lits) = self.clauses.remove(occ) {
+					for lit in lits {
+						println!("LIT {} Occ: {}", lit, occ);
+						if let Some(mut lit_occ) = self.occurrences.remove(&lit) {
+							lit_occ.remove(occ);
+							if !lit_occ.is_empty() { self.occurrences.insert(lit, lit_occ); }
+						}
+					}
+				}	
                 self.nclause -= 1;
             }
         }
@@ -101,6 +131,7 @@ impl CNF {
         self.remove_negation(lit);
     }
 
+	/// Since we know the assignment of `lit`, we can remove the negation `~lit` from all other clauses.
     fn remove_negation(&mut self, lit: i32) {
         let neg = lit ^ 1;
         if let Some(vec) = self.occurrences.remove(&neg) {
@@ -117,6 +148,8 @@ impl CNF {
     }
 }
 
+/// Cloning the CNF is necessary for our current implementation. In a better
+/// implementation we would try to avoid the need for cloning
 impl Clone for CNF {
     fn clone(&self) -> CNF {
         CNF {
@@ -143,7 +176,7 @@ impl Display for CNF {
                                  })
                                  .collect());
         }
-        let mut fmt_occ: HashMap<i32, &Vec<i32>> = HashMap::new();
+        let mut fmt_occ: HashMap<i32, &HashSet<i32>> = HashMap::new();
         for occ in self.occurrences.iter() {
             let (id, oc) = occ;
             fmt_occ.insert(if *id % 2 == 0 {
@@ -307,7 +340,7 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
                         Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
                     })
                     .collect();
-                cnf.add_clause(tokens);
+                cnf._add_clause(tokens);
             }
         }
     }
