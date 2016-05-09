@@ -556,6 +556,24 @@ mod tests {
     }
 
     #[test]
+    fn propagation_tracks_nclause() {
+        let tmpfile = create_tempfile!("
+            p cnf 4 4
+            1 0
+            2 -1 0
+            3 -1 0
+            4 1 0
+        ");
+        let mut cnf = parse_dimacs_file(tmpfile).unwrap();
+        cnf.unit_propagate(0);
+        assert_eq!(cnf.nclause, 2);
+        cnf.propagate(4); // 2
+        assert_eq!(cnf.nclause, 1);
+        cnf.propagate(6); // 3
+        assert_eq!(cnf.nclause, 0);
+    }
+
+    #[test]
     fn zeroth_works() {
         let mut hs = HashSet::new();
         hs.insert(5);
@@ -570,6 +588,4 @@ mod tests {
         let zth = zeroth!(hs);
         assert!(zth == 5 || zth == 535);
     }
-
-    // TODO: nclauses bookkeeping test.
 }
