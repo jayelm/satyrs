@@ -5,20 +5,20 @@ use satyrs::cnf::{CNF, Assignment, PartialAssignment};
 use satyrs::heuristics::jw;
 
 #[allow(non_snake_case)]
-pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment,PartialAssignment)> {
+pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment, PartialAssignment)> {
     let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
     match _dpll(cnf, &mut p_assn, verbose) {
         Some(assn) => {
             Some((assn.assignment
-                     .iter()
-                     .map(|a| {
-                         match *a {
-                             Some(a) => a,
-                             None => true,
-                         }
-                     })
-                     .collect(),
-                     assn))
+                      .iter()
+                      .map(|a| {
+                          match *a {
+                              Some(a) => a,
+                              None => true,
+                          }
+                      })
+                      .collect(),
+                  assn))
         }
         None => None,
     }
@@ -46,13 +46,16 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     let mut _cnf = cnf.clone();
     let mut units = _cnf.units.clone();
     while !units.is_empty() {
-        if verbose { println!("Simplifying unit clause(s): {:?}", units) }
+        if verbose {
+            println!("Simplifying unit clause(s): {:?}", units)
+        }
         for unit in units.iter() {
             // Previous versions of this for loop could have unit-propagated and
             // remove the unit clause here, so it's not necessary that the unit clause id
             // still exists in the clauses.
             if let Some(clause) = _cnf.clauses.get(&unit) {
-                // Then via unit propagation we've created an empty clause; no solution down this path
+                // Then via unit propagation we've created an empty clause; no solution down this
+                // path
                 if clause.is_empty() {
                     return None;
                 }
