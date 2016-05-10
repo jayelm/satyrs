@@ -8,9 +8,10 @@ The sexiest SAT solver out there.
 
 - Download the ZIP or Clone this repository
 - Supply a valid CNF file (DIMACS format)
-- Run with the following command:
 
-  	./satyrs <file.cnf>
+Run with the following command:
+
+    ./satyrs <file.cnf>
 
 Repository comes with test files of various lengths
 

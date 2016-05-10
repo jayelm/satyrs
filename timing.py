@@ -6,15 +6,14 @@ from numpy import std
 
 # In (roughly) increasing order
 CNF_FILES = [
-		'./tests/uf250-01.cnf'
-		#'./tests/test.cnf',
-	#'./tests/quinn.cnf',
-	# './tests/medium.cnf',
-	# './tests/cascade.cnf',
-    # Unsat
-	# './tests/phole/hole6.cnf',
-	# './tests/phole/hole7.cnf'
-	#   './tests/dubois29_unsat.cnf'
+	'./tests/test.cnf',
+	'./tests/quinn.cnf',
+	'./tests/medium.cnf',
+	'./tests/cascade.cnf',
+	#Unsat
+	'./tests/phole/hole6.cnf',
+	'./tests/phole/hole7.cnf'
+	# './tests/dubois29_unsat.cnf'
 ]
 
 if __name__ == '__main__':
