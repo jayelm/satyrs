@@ -43,9 +43,9 @@ pub struct CNF {
 }
 
 impl CNF {
-	/// Create a new CNF using the p specifications in the DIMACS file.	
-	/// Number of variables and clauses must be known.
-	/// If using add_clause, set `nclause` to 0.
+    /// Create a new CNF using the p specifications in the DIMACS file.
+    /// Number of variables and clauses must be known.
+    /// If using add_clause, set `nclause` to 0.
     pub fn new(nvar: i32, nclause: i32) -> CNF {
         CNF {
             nvar: nvar,
@@ -54,26 +54,36 @@ impl CNF {
             occurrences: HashMap::new(),
             units: HashSet::new(),
         }
-    }	
+    }
 
-	/// The user friendly function for adding a clause to the CNF.
-	/// Still requires that the CNF be created with proper number of variables
-	#[allow(dead_code)]
-	pub fn add_clause(&mut self, clause: Vec<i32>){
-		let hs : HashSet<i32> = clause.into_iter().filter_map(|n| {
-                        // FIXME: This ignores zeros not just as line enders but in the formulas
-                        // themselves. Split on zeros at the end here.
-                        if n == 0 { return None; }
-                        // FIXME: This should return an error instead of
-                        // panicking, but I can't return an error
-                        // in a closure
-                        if n > self.nvar { panic!("variable out of range: {}", n); }
-                        Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
-                    })
-                    .collect();
-		self.nclause+=1;
-		self._add_clause(hs);
-	}
+    /// The user friendly function for adding a clause to the CNF.
+    /// Still requires that the CNF be created with proper number of variables
+    #[allow(dead_code)]
+    pub fn add_clause(&mut self, clause: Vec<i32>) {
+        let hs: HashSet<i32> =
+            clause.into_iter()
+                  .filter_map(|n| {
+                      // FIXME: This ignores zeros not just as line enders but in the formulas
+                      // themselves. Split on zeros at the end here.
+                      if n == 0 {
+                          return None;
+                      }
+                      // FIXME: This should return an error instead of
+                      // panicking, but I can't return an error
+                      // in a closure
+                      if n > self.nvar {
+                          panic!("variable out of range: {}", n);
+                      }
+                      Some(if n < 0 {
+                          (-n) << 1 | 1
+                      } else {
+                          n << 1
+                      })
+                  })
+                  .collect();
+        self.nclause += 1;
+        self._add_clause(hs);
+    }
 
     /// Add a clause, return the ID of the inserted clause
     /// Right now, this isn't public; api is odd as we have an odd representation of literals.
@@ -116,7 +126,7 @@ impl CNF {
 
     /// Remove all clauses containing literal `lit` from the CNF, and remove the negation of `lit`
     /// from the remaining clauses.
-	/// Ex: (p^q^r)v(~q). Assign q false and fix equation to (p^r)
+    /// Ex: (p^q^r)v(~q). Assign q false and fix equation to (p^r)
     /// TODO: unit_propagate and propagate should return true/false
     /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
@@ -140,7 +150,8 @@ impl CNF {
         self.remove_negation(lit);
     }
 
-	/// Since we know the assignment of `lit`, we can remove the negation `~lit` from all other clauses.
+    /// Since we know the assignment of `lit`, we can remove the negation `~lit` from all other
+    /// clauses.
     fn remove_negation(&mut self, lit: i32) {
         let neg = lit ^ 1;
         if let Some(vec) = self.occurrences.remove(&neg) {

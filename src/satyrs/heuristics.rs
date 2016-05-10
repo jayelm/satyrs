@@ -24,10 +24,12 @@ pub fn jw(cnf: &CNF) -> i32 {
     // Can't use max_by because f64 doesn't implement total Ord. Until this works, we'll do it the
     // for loop way.
     let j = |lit_ptr: &i32| -> f64 {
-        cnf.occurrences.get(lit_ptr).unwrap().iter()
-            .fold(0f64, |acc, occ| {
-                acc + (2f64).powi(-(cnf.clauses.get(occ).unwrap().len() as i32))
-            })
+        cnf.occurrences
+           .get(lit_ptr)
+           .unwrap()
+           .iter()
+           .fold(0f64,
+                 |acc, occ| acc + (2f64).powi(-(cnf.clauses.get(occ).unwrap().len() as i32)))
     };
     // (Alternative functional one-liner for the mess below)
     // *cnf.occurrences.keys().max_by_key(j).unwrap()
@@ -40,7 +42,9 @@ pub fn jw(cnf: &CNF) -> i32 {
             max_lit = *lit;
         }
     }
-    if max_lit == -1 { panic!("Called heuristic on formula with no occurrences"); }
+    if max_lit == -1 {
+        panic!("Called heuristic on formula with no occurrences");
+    }
     max_lit
 }
 
