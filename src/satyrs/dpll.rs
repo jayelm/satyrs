@@ -44,14 +44,13 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
 
     // For every unit-clause, unit-propagate
     let mut _cnf = cnf.clone();
-    let mut units = cnf.units.clone();
+    let mut units = _cnf.units.clone();
     while !units.is_empty() {
         if verbose { println!("Simplifying unit clause(s): {:?}", units) }
         for unit in units.iter() {
             // Previous versions of this for loop could have unit-propagated and
             // remove the unit clause here, so it's not necessary that the unit clause id
             // still exists in the clauses.
-            let mut propagate: bool = false;
             if let Some(clause) = _cnf.clauses.get(&unit) {
                 // Then via unit propagation we've created an empty clause; no solution down this path
                 if clause.is_empty() {
@@ -59,14 +58,12 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
                 }
                 let lit: i32 = zeroth!(clause);
                 p_assn.assign_literal(lit);
-                propagate=true;
                 // TODO: Could have check for empty clauses in unit_propagate
             }
-            if propagate { _cnf.unit_propagate(*unit); } // Only propagate in the clone
+            _cnf.unit_propagate(*unit); // Only propagate in the clone
         }    
         units = _cnf.units.clone();
     }
-    println!("After cascade: {}", cnf);
     // Pure literal elimination
     // We can iterate through old cnf occurrences and propagate on new _cnf
     for lit in cnf.occurrences.keys() {
