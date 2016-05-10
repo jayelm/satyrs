@@ -4,11 +4,11 @@
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
 
 #[allow(non_snake_case)]
-pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<Assignment> {
+pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment,PartialAssignment)> {
     let mut p_assn = PartialAssignment::new(cnf.nvar as usize);
     match _dpll(cnf, &mut p_assn, verbose) {
         Some(assn) => {
-            Some(assn.assignment
+            Some((assn.assignment
                      .iter()
                      .map(|a| {
                          match *a {
@@ -16,7 +16,8 @@ pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<Assignment> {
                              None => true,
                          }
                      })
-                     .collect())
+                     .collect(),
+                     assn))
         }
         None => None,
     }
@@ -42,20 +43,26 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
 
     // For every unit-clause, unit-propogate
     let mut _cnf = cnf.clone();
-    for unit in cnf.units.iter() {
-        // Previous versions of this for loop could have unit-propagated and
-        // remove the unit clause here, so it's not necessary that the unit clause id
-        // still exists in the clauses.
-        if let Some(clause) = cnf.clauses.get(&unit) {
-            // Then via unit propagation we've created an empty clause; no solution down this path
-            if clause.is_empty() {
-                return None;
+    let mut units = cnf.units.clone();
+    while !units.is_empty() {
+        if verbose { println!("Simplifying unit clause(s): {:?}", units) }
+        for unit in units.iter() {
+            // Previous versions of this for loop could have unit-propagated and
+            // remove the unit clause here, so it's not necessary that the unit clause id
+            // still exists in the clauses.
+            // TODO: Make this _cnf not cnf.clauses
+            if let Some(clause) = cnf.clauses.get(&unit) {
+                // Then via unit propagation we've created an empty clause; no solution down this path
+                if clause.is_empty() {
+                    return None;
+                }
+                let lit: i32 = zeroth!(clause);
+                p_assn.assign_literal(lit);
+                _cnf.unit_propagate(*unit); // Only propogate in the clone
+                // TODO: Could have check for empty clauses in unit_propagate
             }
-            let lit: i32 = zeroth!(clause);
-            p_assn.assign_literal(lit);
-            _cnf.unit_propagate(*unit); // Only propogate in the clone
-            // TODO: Could have check for empty clauses in unit_propagate
-        }
+        }    
+        units = _cnf.units.clone();
     }
 
     // Pure literal elimination

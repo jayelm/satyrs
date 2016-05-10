@@ -116,7 +116,7 @@ impl CNF {
 			for occ in &vec {
 				if let Some(lits) = self.clauses.remove(occ) {
 					for lit in lits {
-						println!("LIT {} Occ: {}", lit, occ);
+						// Book keeping on the occurrences of lit
 						if let Some(mut lit_occ) = self.occurrences.remove(&lit) {
 							lit_occ.remove(occ);
 							if !lit_occ.is_empty() { self.occurrences.insert(lit, lit_occ); }
@@ -330,8 +330,6 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
                 let tokens: HashSet<i32> = words.iter()
                     .filter_map(|s| {
                         let n = s.parse::<i32>().unwrap();
-                        // FIXME: This ignores zeros not just as line enders but in the formulas
-                        // themselves. Split on zeros at the end here.
                         if n == 0 { return None; }
                         // FIXME: This should return an error instead of
                         // panicking, but I can't return an error
@@ -357,6 +355,18 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF, &'static str> {
     parse_dimacs(&mut reader)
 }
 
+pub fn format_output(assn: &Assignment) -> String {
+	let mut output = String::new();
+	let mut var : i32 = 0;
+	for l in assn {
+		var+=1;
+		if *l { output.push_str(var.to_string().as_str()); }
+		else { output.push_str((-var).to_string().as_str()); }
+		if var < assn.len() as i32 { output.push(' '); }
+	}
+	output
+}
+
 #[cfg(test)]
 mod tests {
     extern crate tempfile;
@@ -379,7 +389,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "out of range")]
+    #[shoud_panic(expected = "out of range")]
     fn variable_out_of_range() {
         let tmpfile = create_tempfile!("
             p cnf 2 3

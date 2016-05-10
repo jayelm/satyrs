@@ -30,7 +30,11 @@ fn main() {
     let cnf: CNF = satyrs::cnf::parse_dimacs_file(f).expect("Dimacs Error");
     let solvable = dpll::DPLL(&cnf, verbose);
     match solvable {
-        Some(solution) => println!("Satisfiable. Solution: {:?}", solution),
+        Some((solution, partial)) => {
+            let solution_str = satyrs::cnf::format_output(&solution);
+            println!("Satisfiable!");
+            println!("SAT Format: {}\nSolution: {:?}\nPartial: {}\n",  solution_str, solution, partial);
+        }
         None => println!("Unsatisfiable"),
     }
 }

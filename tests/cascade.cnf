@@ -1,0 +1,8 @@
+c This is a comment
+c CNF problem with 3 variablesm 1 .,.,
+p cnf 4 4
+c fgd
+-1 2 0
+-2 3 0
+-3 4 0 
+1 0
