@@ -240,6 +240,7 @@ impl PartialAssignment {
 
     fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
+        assert!(self.assignment[v].is_none());
         self.assignment[v] = Some(assn);
         self.unassigned.remove(&(v as i32));
     }
@@ -251,6 +252,7 @@ impl PartialAssignment {
     }
 
     fn unassign(&mut self, v: usize) {
+        assert!(self.assignment[v].is_some());
         self.assignment[v] = None;
         self.unassigned.insert(v as i32);
     }
