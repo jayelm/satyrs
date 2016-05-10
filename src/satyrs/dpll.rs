@@ -69,6 +69,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     }
     // Pure literal elimination
     // We can iterate through old cnf occurrences and propagate on new _cnf
+    // FIXME XXX: bug here between checking _cnf vs cnf?
     for lit in cnf.occurrences.keys() {
         let neg = *lit ^ 1;
         if !cnf.occurrences.contains_key(&neg) {
