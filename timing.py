@@ -6,14 +6,15 @@ from numpy import std
 
 # In (roughly) increasing order
 CNF_FILES = [
-    './tests/test.cnf',
-    './tests/quinn.cnf',
-    './tests/medium.cnf',
-    './tests/cascade.cnf',
+		'./tests/uf250-01.cnf'
+		#'./tests/test.cnf',
+	#'./tests/quinn.cnf',
+	# './tests/medium.cnf',
+	# './tests/cascade.cnf',
     # Unsat
-    './tests/phole/hole6.cnf',
-    './tests/phole/hole7.cnf',
-    './tests/dubois29_unsat.cnf'
+	# './tests/phole/hole6.cnf',
+	# './tests/phole/hole7.cnf'
+	#   './tests/dubois29_unsat.cnf'
 ]
 
 if __name__ == '__main__':
@@ -30,11 +31,12 @@ if __name__ == '__main__':
         runs = []
         for i in xrange(args.num):
             output = check_output(
-                ["time", "target/release/satyrs", f],
+                ["time","target/debug/satyrs", f],
                 stderr=STDOUT,
             )
             # Output from time command is the last six elements of this
             # split, and real time is what we're looking for
+			#print output
             timing_output = output.split()[-6:]
             real_time = float(timing_output[0])
             if args.verbose:
@@ -45,3 +47,4 @@ if __name__ == '__main__':
             f, average_time, round(min(runs), 2),
             round(max(runs), 2), round(std(runs), 2)
         )
+	

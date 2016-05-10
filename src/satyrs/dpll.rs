@@ -2,7 +2,7 @@
 //! pure literal assignment.
 
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
-use satyrs::heuristics::jw;
+use satyrs::heuristics::{jw,random};
 
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment, PartialAssignment)> {
@@ -77,7 +77,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
 		}
     }
 	for lit in pures.iter() {
-		println!("Pure Literal Propagation: {}", lit);
+		if verbose { println!("Pure Literal Propagation: {}", lit); }
 		p_assn.assign_literal(*lit);
 		_cnf.propagate(*lit);
 	}
@@ -106,6 +106,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     let mut r_cnf = _cnf.clone();
     let mut r_p_assn = p_assn.clone();
 
+    // let lit = random(&_cnf);
     let lit = jw(&_cnf);
 
     if verbose {

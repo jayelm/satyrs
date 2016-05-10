@@ -20,6 +20,7 @@ pub fn mom(cnf: &CNF) {
 /// weighting smaller clauses more heavily, with the formula
 /// $$J(l) = \sum_{\{\omega \in \phi \mid l \in \omega}\} 2^{-|\omega|}.$$
 /// In practice, one-sided is faster than two-sided, and this method can be ~30x faster than MOM!
+#[allow(dead_code)]
 pub fn jw(cnf: &CNF) -> i32 {
     // Can't use max_by because f64 doesn't implement total Ord. Until this works, we'll do it the
     // for loop way.
@@ -39,13 +40,29 @@ pub fn jw(cnf: &CNF) -> i32 {
         let lit_j = j(lit);
         if lit_j > max_j {
             max_j = lit_j;
-            max_lit = *lit;
-        }
-    }
-    if max_lit == -1 {
-        panic!("Called heuristic on formula with no occurrences");
-    }
-    max_lit
+			max_lit = *lit;
+		}
+	}
+	if max_lit == -1 {
+		panic!("Called heuristic on formula with no occurrences");
+	}
+	max_lit
+}
+
+#[allow(dead_code)]
+pub fn random(cnf: &CNF) -> i32 {
+	let literal = match cnf.clauses.values().next() {
+		Some(clause) => {
+			if !clause.is_empty() {
+				Some(zeroth!(clause))
+			} else {
+				None
+			}
+		}
+		None => None
+	};
+	if literal.is_none() { panic!("No literals in clause!"); }
+	literal.unwrap()
 }
 
 #[cfg(test)]
