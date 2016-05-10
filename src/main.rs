@@ -33,7 +33,10 @@ fn main() {
         Some((solution, partial)) => {
             let solution_str = satyrs::cnf::format_output(&solution);
             println!("Satisfiable!");
-            println!("SAT Format: {}\nSolution: {:?}\nPartial {}\n",  solution_str, solution, partial);
+            println!("SAT Format: {}\nSolution: {:?}\nPartial {}\n",
+                     solution_str,
+                     solution,
+                     partial);
         }
         None => println!("Unsatisfiable"),
     }

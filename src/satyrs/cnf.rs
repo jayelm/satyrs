@@ -131,17 +131,19 @@ impl CNF {
     /// depending on whether the updated CNF problem is satisfiable
     pub fn propagate(&mut self, lit: i32) {
         // Remove clauses with lit and remove lit from occurrences.
-		if let Some(vec) = self.occurrences.remove(&lit) {
-			for occ in &vec {
-				if let Some(lits) = self.clauses.remove(occ) {
-					for lit in lits {
-						// Book keeping on the occurrences of lit
-						if let Some(mut lit_occ) = self.occurrences.remove(&lit) {
-							lit_occ.remove(occ);
-							if !lit_occ.is_empty() { self.occurrences.insert(lit, lit_occ); }
-						}
-					}
-				}	
+        if let Some(vec) = self.occurrences.remove(&lit) {
+            for occ in &vec {
+                if let Some(lits) = self.clauses.remove(occ) {
+                    for lit in lits {
+                        // Book keeping on the occurrences of lit
+                        if let Some(mut lit_occ) = self.occurrences.remove(&lit) {
+                            lit_occ.remove(occ);
+                            if !lit_occ.is_empty() {
+                                self.occurrences.insert(lit, lit_occ);
+                            }
+                        }
+                    }
+                }
                 self.nclause -= 1;
             }
         }
@@ -348,16 +350,24 @@ fn parse_dimacs(reader: &mut BufReader<File>) -> Result<CNF, &'static str> {
                     return Err("too many clauses in file");
                 }
                 let tokens: HashSet<i32> = words.iter()
-                    .filter_map(|s| {
-                        let n = s.parse::<i32>().unwrap();
-                        if n == 0 { return None; }
-                        // FIXME: This should return an error instead of
-                        // panicking, but I can't return an error
-                        // in a closure
-                        if n > nvar { panic!("variable out of range: {}", n); }
-                        Some(if n < 0 { (-n) << 1 | 1 } else { n << 1 })
-                    })
-                    .collect();
+                                                .filter_map(|s| {
+                                                    let n = s.parse::<i32>().unwrap();
+                                                    if n == 0 {
+                                                        return None;
+                                                    }
+                                                    // FIXME: This should return an error instead of
+                                                    // panicking, but I can't return an error
+                                                    // in a closure
+                                                    if n > nvar {
+                                                        panic!("variable out of range: {}", n);
+                                                    }
+                                                    Some(if n < 0 {
+                                                        (-n) << 1 | 1
+                                                    } else {
+                                                        n << 1
+                                                    })
+                                                })
+                                                .collect();
                 cnf._add_clause(tokens);
             }
         }
@@ -376,15 +386,20 @@ pub fn parse_dimacs_file(f: File) -> Result<CNF, &'static str> {
 }
 
 pub fn format_output(assn: &Assignment) -> String {
-	let mut output = String::new();
-	let mut var : i32 = 0;
-	for l in assn {
-		var+=1;
-		if *l { output.push_str(var.to_string().as_str()); }
-		else { output.push_str((-var).to_string().as_str()); }
-		if var < assn.len() as i32 { output.push(' '); }
-	}
-	output
+    let mut output = String::new();
+    let mut var: i32 = 0;
+    for l in assn {
+        var += 1;
+        if *l {
+            output.push_str(var.to_string().as_str());
+        } else {
+            output.push_str((-var).to_string().as_str());
+        }
+        if var < assn.len() as i32 {
+            output.push(' ');
+        }
+    }
+    output
 }
 
 #[cfg(test)]
