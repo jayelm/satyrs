@@ -64,7 +64,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
                 // TODO: Could have check for empty clauses in unit_propagate
             }
             _cnf.unit_propagate(*unit); // Only propagate in the clone
-        }    
+        }
         units = _cnf.units.clone();
     }
     // Pure literal elimination
