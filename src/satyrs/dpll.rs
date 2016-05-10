@@ -2,6 +2,7 @@
 //! pure literal assignment.
 
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
+use satyrs::heuristics::jw;
 
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment,PartialAssignment)> {
@@ -79,24 +80,26 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     let mut r_cnf = _cnf.clone();
 
     // Choose literal L for split
-    let literal = match _cnf.clauses.values().next() {
-        Some(clause) => {
-            if !clause.is_empty() {
-                Some(zeroth!(clause))
-            } else {
-                // This will return out of the *function* - we found an empty clause, so formula is
-                // not satisfiable.
-                return None;
-            }
+    // Heuristics don't do random checks for empty occurrences.
+    // If there are no occurrences,
+    if _cnf.occurrences.is_empty() {
+        // FIXME: horrible hack
+        // Bookkeeping is not implemented perfectly, we can get to this state and (just from
+        // empirics) clauses will either be EMPTY or will have any number of empty clauses.
+        // Intutition: if clauses is EMPTY, then there are no occurrences but also no clauses, so
+        // we're good to go. If clauses is NOT empty, then there are no occurrences but there are
+        // clauses, so the clauses are empty, so we return none.
+        if _cnf.clauses.is_empty() {
+            // Good
+            let _p_assn = p_assn.clone();
+            return Some(_p_assn);
+        } else {
+            // Bad
+            return None;
         }
-        None => None,
-    };
-
-    if literal.is_none() {
-        let _p_assn = p_assn.clone();
-        return Some(_p_assn);
     }
-    let lit = literal.unwrap();
+    let lit = jw(&_cnf);
+
     if verbose {
         if lit & 1 == 0 {
             // True
