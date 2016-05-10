@@ -275,9 +275,9 @@ impl Clone for PartialAssignment {
 // TODO: Implement Display
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let plusone: HashSet<i32> = self.unassigned.iter().map(|x| x + 1).collect();
         let formatted = format!("Assignments: {:?}\nUnassigned: {:?}",
-                                self.assignment,
-                                self.unassigned);
+                                self.assignment, plusone);
         write!(f, "{}", formatted)
     }
 }
