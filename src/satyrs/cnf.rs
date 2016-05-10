@@ -20,6 +20,15 @@ macro_rules! zeroth {
     }}
 }
 
+macro_rules! create_tempfile {
+    ($x: expr) => {{
+        let mut tmpfile: File = tempfile::tempfile().unwrap();
+        let _ = write!(tmpfile, $x);
+        tmpfile.seek(SeekFrom::Start(0)).unwrap();
+
+        tmpfile
+    }};
+}
 
 /// CNF will house all clauses, key is int so that we can use occurrences
 /// Occurrences tracks which clauses literals are used in for simplifications
@@ -370,6 +379,7 @@ pub fn format_output(assn: &Assignment) -> String {
 #[cfg(test)]
 mod tests {
     extern crate tempfile;
+
     use std::fs::File;
     use std::io::prelude::*;
     use std::io::SeekFrom;
@@ -377,16 +387,6 @@ mod tests {
 
     use super::parse_dimacs_file;
     // use super::zeroth;
-
-    macro_rules! create_tempfile {
-        ($x: expr) => {{
-            let mut tmpfile: File = tempfile::tempfile().unwrap();
-            let _ = write!(tmpfile, $x);
-            tmpfile.seek(SeekFrom::Start(0)).unwrap();
-
-            tmpfile
-        }};
-    }
 
     #[test]
     #[shoud_panic(expected = "out of range")]
