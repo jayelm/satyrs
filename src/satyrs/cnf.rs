@@ -221,7 +221,7 @@ impl Display for CNF {
 
 // End CNF
 
-// Begin Assignemnts
+// Begin Assignments
 
 pub type Assignment = Vec<bool>;
 
@@ -273,7 +273,7 @@ impl Clone for PartialAssignment {
 // TODO: Implement Display
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        let formatted = format!("Assignemnts: {:?}\nUnassigned: {:?}",
+        let formatted = format!("Assignments: {:?}\nUnassigned: {:?}",
                                 self.assignment,
                                 self.unassigned);
         write!(f, "{}", formatted)
