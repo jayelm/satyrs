@@ -69,13 +69,19 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     }
     // Pure literal elimination
     // We can iterate through old cnf occurrences and propagate on new _cnf
-    for lit in cnf.occurrences.keys() {
+	let mut pures : Vec<i32> = Vec::new();
+    for lit in _cnf.occurrences.keys() {
         let neg = *lit ^ 1;
-        if !cnf.occurrences.contains_key(&neg) {
-            p_assn.assign_literal(*lit);
-            _cnf.propagate(*lit);
-        }
+        if !_cnf.occurrences.contains_key(&neg) {
+			pures.push(*lit);
+		}
     }
+	for lit in pures.iter() {
+		println!("Pure Literal Propagation: {}", lit);
+		// p_assn.assign_literal(*lit);
+		// _cnf.propagate(*lit);
+
+	}
 
     // Clone for the right literal, since we're going to propagate _cnf with the left literal
     let mut r_cnf = _cnf.clone();

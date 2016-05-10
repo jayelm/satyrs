@@ -240,6 +240,7 @@ impl PartialAssignment {
 
     fn assign(&mut self, v: usize, assn: bool) {
         // TODO: Error check
+        println!("ASSIGN {}", v);
         assert!(self.assignment[v].is_none());
         self.assignment[v] = Some(assn);
         self.unassigned.remove(&(v as i32));
@@ -252,6 +253,7 @@ impl PartialAssignment {
     }
 
     fn unassign(&mut self, v: usize) {
+        println!("UNASSIGN {}", v);
         assert!(self.assignment[v].is_some());
         self.assignment[v] = None;
         self.unassigned.insert(v as i32);
@@ -275,9 +277,10 @@ impl Clone for PartialAssignment {
 // TODO: Implement Display
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let unassn_fmt : HashSet<i32> = self.unassigned.iter().map(|l| l+1).collect();
         let formatted = format!("Assignments: {:?}\nUnassigned: {:?}",
                                 self.assignment,
-                                self.unassigned);
+                                unassn_fmt);
         write!(f, "{}", formatted)
     }
 }
