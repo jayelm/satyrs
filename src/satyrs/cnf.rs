@@ -207,7 +207,7 @@ impl Display for CNF {
                            oc);
         }
         let formatted = format!("Nvar: {:?} Nclause: {:?} Units: {:?}\nClauses: \
-                                 {:?}\nOccurrrences: {:?}",
+                                 {:?}\nOccurrences: {:?}",
                                 self.nvar,
                                 self.nclause,
                                 self.units,

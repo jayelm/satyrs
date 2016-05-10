@@ -1,5 +1,6 @@
 //! Heuristics for CNF instances.
 use satyrs::cnf::CNF;
+use std::f64::NEG_INFINITY;
 
 // K selected heuristically for MOM formula
 #[allow(dead_code)]
@@ -33,7 +34,7 @@ pub fn jw(cnf: &CNF) -> i32 {
     };
     // (Alternative functional one-liner for the mess below)
     // *cnf.occurrences.keys().max_by_key(j).unwrap()
-    let mut max_j: f64 = 0_f64;
+    let mut max_j: f64 = NEG_INFINITY;
     let mut max_lit: i32 = -1;
     for lit in cnf.occurrences.keys() {
         let lit_j = j(lit);
@@ -42,9 +43,7 @@ pub fn jw(cnf: &CNF) -> i32 {
             max_lit = *lit;
         }
     }
-    if max_lit == -1 {
-        panic!("Called heuristic on formula with no occurrences");
-    }
+    if max_lit == -1 { panic!("Called heuristic on formula with no occurrences"); }
     max_lit
 }
 
