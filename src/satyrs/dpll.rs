@@ -78,13 +78,9 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     }
 	for lit in pures.iter() {
 		println!("Pure Literal Propagation: {}", lit);
-		// p_assn.assign_literal(*lit);
-		// _cnf.propagate(*lit);
-
+		p_assn.assign_literal(*lit);
+		_cnf.propagate(*lit);
 	}
-
-    // Clone for the right literal, since we're going to propagate _cnf with the left literal
-    let mut r_cnf = _cnf.clone();
 
     // Choose literal L for split
     // Heuristics don't do random checks for empty occurrences.
@@ -105,6 +101,11 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
             return None;
         }
     }
+
+    // Clone for the right literal, since we're going to propagate _cnf with the left literal
+    let mut r_cnf = _cnf.clone();
+    let mut r_p_assn = p_assn.clone();
+
     let lit = jw(&_cnf);
 
     if verbose {
@@ -116,6 +117,7 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
             println!("Splitting on -{}", lit / 2);
         }
     }
+
     // Propagate literal
     _cnf.propagate(lit);
 
@@ -134,11 +136,11 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     // Otherwise, unassign this literal, assign its negation, and try the subsequent formula.
     let neg = lit ^ 1;
     p_assn.unassign_literal(lit);
-    p_assn.assign_literal(neg);
+    r_p_assn.assign_literal(neg);
 
     r_cnf.propagate(neg);
     if verbose {
         println!("Trying right");
     }
-    _dpll(&r_cnf, p_assn, verbose)
+    _dpll(&r_cnf, &mut r_p_assn, verbose)
 }
