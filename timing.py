@@ -2,6 +2,7 @@
 Measure timing of satyrs on cnf files of varying sizes.
 """
 from subprocess import check_output, STDOUT
+from numpy import std
 
 # In (roughly) increasing order
 CNF_FILES = [
@@ -26,6 +27,7 @@ if __name__ == '__main__':
 
     for f in CNF_FILES:
         average_time = 0
+        runs = []
         for i in xrange(args.num):
             output = check_output(
                 ["time", "target/release/satyrs", f],
@@ -38,4 +40,8 @@ if __name__ == '__main__':
             if args.verbose:
                 print "{} ({}): {}".format(f, i, real_time)
             average_time += real_time / args.num
-        print "{} (AVERAGE): {}".format(f, average_time)
+            runs.append(real_time)
+        print "{} (AVERAGE): {}\n\t(min: {} max: {} sd: {})".format(
+            f, average_time, round(min(runs), 2),
+            round(max(runs), 2), round(std(runs), 2)
+        )
