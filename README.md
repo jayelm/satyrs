@@ -38,7 +38,8 @@ copying.
 Here's a table of benchmarks on some selected CNF problems. As you can see, JW is
 highly more efficient than random selection, but the runtime of our algorithm
 in general blows up very quickly to the point where we lost patience with
-random selection on the last problem.
+random selection on the last problem. For those interested, `timing.py` can
+generate these statistics.
 
 | CNF          | Variables | Clauses | Satisfiable? | Mean JW Runtime (sd) | Mean Rand Runtime (sd) |
 |--------------|-----------|---------|--------------|----------------------|------------------------|
