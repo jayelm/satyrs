@@ -2,7 +2,7 @@
 //! pure literal assignment.
 
 use satyrs::cnf::{CNF, Assignment, PartialAssignment};
-use satyrs::heuristics::{jw,random};
+use satyrs::heuristics::{jw, random};
 
 #[allow(non_snake_case)]
 pub fn DPLL(cnf: &CNF, verbose: bool) -> Option<(Assignment, PartialAssignment)> {
@@ -69,18 +69,20 @@ fn _dpll(cnf: &CNF, p_assn: &mut PartialAssignment, verbose: bool) -> Option<Par
     }
     // Pure literal elimination
     // We can iterate through old cnf occurrences and propagate on new _cnf
-	let mut pures : Vec<i32> = Vec::new();
+    let mut pures: Vec<i32> = Vec::new();
     for lit in _cnf.occurrences.keys() {
         let neg = *lit ^ 1;
         if !_cnf.occurrences.contains_key(&neg) {
-			pures.push(*lit);
-		}
+            pures.push(*lit);
+        }
     }
-	for lit in pures.iter() {
-		if verbose { println!("Pure Literal Propagation: {}", lit); }
-		p_assn.assign_literal(*lit);
-		_cnf.propagate(*lit);
-	}
+    for lit in pures.iter() {
+        if verbose {
+            println!("Pure Literal Propagation: {}", lit);
+        }
+        p_assn.assign_literal(*lit);
+        _cnf.propagate(*lit);
+    }
 
     // Choose literal L for split
     // Heuristics don't do random checks for empty occurrences.

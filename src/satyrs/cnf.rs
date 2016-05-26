@@ -260,7 +260,7 @@ impl PartialAssignment {
 
     pub fn unassign_literal(&mut self, lit: i32) {
         let v: usize = (lit >> 1) as usize;
-        //println!("UNASSIGN {}", v);
+        // println!("UNASSIGN {}", v);
         self.unassign(v - 1);
     }
 }
@@ -277,10 +277,15 @@ impl Clone for PartialAssignment {
 // TODO: Implement Display
 impl Display for PartialAssignment {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-		let mut var = 0;
-		let assign_fmt : Vec<(i32,Option<bool>)> =
-			self.assignment.iter().map(|l|{ var+=1; (var,*l) }).collect();
-        let unassn_fmt : HashSet<i32> = self.unassigned.iter().map(|l| l+1).collect();
+        let mut var = 0;
+        let assign_fmt: Vec<(i32, Option<bool>)> = self.assignment
+                                                       .iter()
+                                                       .map(|l| {
+                                                           var += 1;
+                                                           (var, *l)
+                                                       })
+                                                       .collect();
+        let unassn_fmt: HashSet<i32> = self.unassigned.iter().map(|l| l + 1).collect();
         let formatted = format!("Assignments: {:?}\nUnassigned: {:?}",
                                 assign_fmt,
                                 unassn_fmt);
